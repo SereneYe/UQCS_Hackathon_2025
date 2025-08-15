@@ -18,14 +18,10 @@ jobs:
         uses: anthropics/claude-code-action@v0
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          instructions: |
+          custom_instructions: |
             Focus on:
             - Security vulnerabilities
             - Performance issues
             - Code quality and best practices
             - Test coverage
             - Documentation completeness
-          exclude_patterns: |
-            node_modules/**
-            dist/**
-            *.log
