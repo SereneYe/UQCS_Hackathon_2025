@@ -51,3 +51,35 @@ def update_video(db: Session, video_id: int, video_update: schemas.VideoUpdate) 
         db.commit()
         db.refresh(db_video)
     return db_video
+
+def get_audio(db: Session, audio_id: int) -> Optional[models.Audio]:
+    return db.query(models.Audio).filter(models.Audio.id == audio_id).first()
+
+def get_audios_by_user_email(db: Session, user_email: str) -> List[models.Audio]:
+    return db.query(models.Audio).filter(models.Audio.user_email == user_email).all()
+
+def get_audios(db: Session, skip: int = 0, limit: int = 100) -> List[models.Audio]:
+    return db.query(models.Audio).offset(skip).limit(limit).all()
+
+def create_audio(db: Session, audio: schemas.AudioCreate) -> models.Audio:
+    db_audio = models.Audio(
+        user_email=audio.user_email,
+        text_input=audio.text_input,
+        voice_name=audio.voice_name,
+        language_code=audio.language_code,
+        audio_format=audio.audio_format
+    )
+    db.add(db_audio)
+    db.commit()
+    db.refresh(db_audio)
+    return db_audio
+
+def update_audio(db: Session, audio_id: int, audio_update: schemas.AudioUpdate) -> Optional[models.Audio]:
+    db_audio = db.query(models.Audio).filter(models.Audio.id == audio_id).first()
+    if db_audio:
+        update_data = audio_update.dict(exclude_unset=True)
+        for field, value in update_data.items():
+            setattr(db_audio, field, value)
+        db.commit()
+        db.refresh(db_audio)
+    return db_audio

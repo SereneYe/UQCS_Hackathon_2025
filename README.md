@@ -33,6 +33,39 @@ If your app needs environment variables:
 
 ## Backend: Setup and Run (FastAPI)
 
+⚠️ **IMPORTANT: Google Cloud TTS Setup Required**
+
+The backend includes Text-to-Speech functionality that requires Google Cloud credentials:
+
+1. **Create Google Cloud Project:**
+   - Go to [Google Cloud Console](https://console.cloud.google.com/)
+   - Create a new project or select existing one
+   - Enable the "Cloud Text-to-Speech API"
+
+2. **Create Service Account:**
+   - Go to "IAM & Admin" > "Service Accounts"
+   - Create service account with "Cloud Text-to-Speech User" role
+   - Download the JSON key file
+
+3. **Setup Credentials:**
+   ```bash
+   # Create credentials directory
+   mkdir backend/credentials
+   
+   # Place your JSON key file in credentials directory
+   # Example: backend/credentials/tts-credential.json
+   
+   # Copy environment template
+   cp backend/.env.example backend/.env
+   
+   # Edit .env file to point to your credential file:
+   # GOOGLE_APPLICATION_CREDENTIALS=credentials/tts-credential.json
+   ```
+
+**Without proper credentials, TTS endpoints will return 500 errors.**
+
+### Backend Setup:
+
 From the repo root:
 
 macOS/Linux:
@@ -60,6 +93,16 @@ The dev server will print a local URL (typically http://localhost:5173).
    cd frontend
    npm run dev
    ```
+
+## API Endpoints
+
+The backend provides the following API categories:
+
+- **Users** (`/users/`) - User management
+- **Videos** (`/videos/`) - Video processing 
+- **Audio** (`/audio/`) - Text-to-Speech functionality ⚠️ *Requires Google Cloud credentials*
+
+Visit `http://localhost:8000/docs` for interactive API documentation.
 
 ## Common Tasks
 - Update Python dependencies and lock them:
