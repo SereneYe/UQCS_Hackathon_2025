@@ -12,10 +12,10 @@ const Terminal = () => {
     const lines = [
       { text: "$ ", delay: 500 },
       { text: "create-video Make a space shooter with neon graphics", delay: 100, finalDelay: 800 },
-      { text: "\n✨ Generating game assets...", delay: 50, finalDelay: 500 },
-      { text: "\nCreating game logic...", delay: 50, finalDelay: 500 },
+      { text: "\n✨ Generating video assets...", delay: 50, finalDelay: 500 },
+      { text: "\nCreating video logic...", delay: 50, finalDelay: 500 },
       { text: "\nOptimizing for web...", delay: 50, finalDelay: 700 },
-      { text: "\n🎮 Game ready! Play now or customize further.", delay: 50, finalDelay: 0 }
+      { text: "\n🎮 video ready! Play now or customize further.", delay: 50, finalDelay: 0 }
     ];
 
     let currentText = '';

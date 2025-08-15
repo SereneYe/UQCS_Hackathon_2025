@@ -40,21 +40,21 @@ const Index = () => {
           <FeatureCard 
             icon={<MessageSquare size={28} />}
             title="Chat to Create"
-            description="Simply describe your game idea in natural language and watch it come to life"
+            description="Simply describe your video idea in natural language and watch it come to life"
             delay="delay-100"
           />
           
           <FeatureCard 
             icon={<Code size={28} />}
             title="No Coding Required"
-            description="Create complex games without writing a single line of code"
+            description="Create complex videos without writing a single line of code"
             delay="delay-300"
           />
           
           <FeatureCard 
             icon={<Play size={28} />}
             title="Instantly Playable"
-            description="Get a working game in seconds that you can play and share immediately"
+            description="Get a working video in seconds that you can play and share immediately"
             delay="delay-500"
           />
         </div>

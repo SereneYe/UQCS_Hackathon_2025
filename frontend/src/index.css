@@ -176,7 +176,7 @@
   animation-delay: 500ms;
 }
 
-/* Custom styles for game workspace */
+/* Custom styles for video workspace */
 .clip-path-triangle {
   clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
 }

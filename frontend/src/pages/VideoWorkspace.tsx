@@ -10,13 +10,13 @@ const VideoWorkspace = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [prompt, setPrompt] = useState('');
-  const [videoPrompt, setVideoPrompt] = useState('create rpg game with trees');
+  const [videoPrompt, setVideoPrompt] = useState('create rpg video with trees');
   const [aiResponse, setAiResponse] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
     // Simulate AI generating a response after component mounts
-    setAiResponse("I've created a game based on your description: \"create rpg game with trees\". You can see it in the preview panel. Feel free to ask for any changes or additions!");
+    setAiResponse("I've created a video based on your description: \"create rpg video with trees\". You can see it in the preview panel. Feel free to ask for any changes or additions!");
   }, []);
 
   const handleSubmitPrompt = () => {
@@ -30,14 +30,14 @@ const VideoWorkspace = () => {
 
     // Simulate sending prompt and getting response
     setVideoPrompt(prompt);
-    setAiResponse(`I've updated the game based on your request: "${prompt}". Check out the preview panel to see the changes!`);
+    setAiResponse(`I've updated the video based on your request: "${prompt}". Check out the preview panel to see the changes!`);
     setPrompt('');
   }
 
   const handleShare = () => {
     toast({
       title: "Share link copied!",
-      description: "Game link has been copied to your clipboard.",
+      description: "video link has been copied to your clipboard.",
     });
   }
 
@@ -47,12 +47,12 @@ const VideoWorkspace = () => {
 
   const handleRefresh = () => {
     toast({
-      title: "Refreshing game...",
+      title: "Refreshing video...",
     });
-    // Simulate refreshing the game preview
+    // Simulate refreshing the video preview
     setTimeout(() => {
       toast({
-        title: "Game refreshed!",
+        title: "video refreshed!",
       });
     }, 1000);
   }
