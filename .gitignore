@@ -21,6 +21,7 @@ yarn-error.log*
 /backend/.pytest_cache/
 /backend/htmlcov/
 .coverage
+app.db
 
 # Environment variables
 .env
