@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 const videoCategories = [
   { id: 'rpg', name: 'RPG Adventure', icon: <span className="text-lg">🗡️</span> },
   { id: 'strategy', name: 'Strategy', icon: <span className="text-lg">🎯</span> },
-  { id: 'puzzle', name: 'Puzzle Game', icon: <span className="text-lg">🧩</span> },
+  { id: 'puzzle', name: 'Puzzle video', icon: <span className="text-lg">🧩</span> },
   { id: 'open-world', name: 'Open World', icon: <span className="text-lg">🌎</span> },
   { id: 'action', name: 'Action', icon: <span className="text-lg">⚡</span> },
 ];
@@ -22,7 +22,7 @@ const CreateVideo = () => {
   const handleCreate = () => {
     if (!videoIdea.trim()) {
       toast({
-        title: "Please describe your game idea",
+        title: "Please describe your video idea",
         variant: "destructive",
       });
       return;
@@ -107,7 +107,7 @@ const CreateVideo = () => {
           </div>
         </div>
         
-        {/* Game categories */}
+        {/* video categories */}
         <div className="flex flex-wrap justify-center gap-3 max-w-4xl mx-auto">
           {videoCategories.map((category) => (
             <button
