@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
 from typing import Optional
-from models import VideoStatus
+from models import VideoStatus, AudioStatus
 
 # User Schemas
 class UserBase(BaseModel):
@@ -33,6 +33,35 @@ class VideoUpdate(BaseModel):
 
 class Video(VideoBase):
     id: int
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+# Audio Schemas
+class AudioBase(BaseModel):
+    user_email: str
+    text_input: str
+    voice_name: Optional[str] = "en-US-Wavenet-D"
+    language_code: Optional[str] = "en-US"
+    audio_format: Optional[str] = "MP3"
+
+class AudioCreate(AudioBase):
+    pass
+
+class AudioUpdate(BaseModel):
+    status: Optional[AudioStatus] = None
+    file_path: Optional[str] = None
+    file_size: Optional[int] = None
+    duration: Optional[int] = None
+
+class Audio(AudioBase):
+    id: int
+    status: AudioStatus
+    file_path: Optional[str] = None
+    file_size: Optional[int] = None
+    duration: Optional[int] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
 

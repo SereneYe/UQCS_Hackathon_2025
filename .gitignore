@@ -27,6 +27,10 @@ yarn-error.log*
 .env.local
 .env*.local
 
+# Google Cloud credentials
+backend/credentials/
+*.json
+
 # IDE/Editor files
 .vscode/
 .idea/
@@ -49,3 +53,5 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+backend/audio_files/1.mp3
+backend/audio_files/2.mp3
