@@ -29,8 +29,7 @@ app.db
 .env*.local
 
 # Google Cloud credentials
-backend/credentials/
-*.json
+backend/credentials/tts-credential.json
 
 # IDE/Editor files
 .vscode/
