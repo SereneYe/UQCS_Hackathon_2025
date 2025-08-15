@@ -10,13 +10,11 @@ jobs:
       contents: read
       pull-requests: write
       id-token: write
+      actions: read
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Run Claude Code Action
         uses: anthropics/claude-code-action@v0
         with:
-          anthropic_api_key: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          # 下面这些参数以官方 README 为准，可设置模型、触发短语、模式等
-          # model: claude-3-7-sonnet
-          # trigger_phrase: "/claude review"
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
