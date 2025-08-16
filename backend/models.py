@@ -35,8 +35,9 @@ class VideoSessionStatus(enum.Enum):
 
 class VideoCategory(enum.Enum):
     CONGRATULATION_VIDEO = "congratulation_video"
-    EVENT_PROPAGATION_VIDEO = "event_propagation_video"
-    COMPANY_INTRODUCTION_VIDEO = "company_introduction_video"  # 新增
+    EVENT_PROPAGATION_VIDEO = "event_propagation_video" 
+    COMPANY_INTRODUCTION_VIDEO = "company_introduction_video"
+    GENERAL_VIDEO = "general_video"
 
 class User(Base):
     __tablename__ = "users"
