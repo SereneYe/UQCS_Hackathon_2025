@@ -5,6 +5,11 @@ from typing import Optional
 from google.cloud import texttospeech
 from google.oauth2 import service_account
 from sqlalchemy.orm import Session
+import sys
+
+# Add parent directories to path for imports
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
 import crud
 import schemas
 from models import AudioStatus
@@ -15,7 +20,7 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-class TTSService:
+class AudioService:
     """
     Google Cloud Text-to-Speech Service
     
@@ -197,5 +202,5 @@ class TTSService:
             crud.update_audio(db, audio_record.id, schemas.AudioUpdate(status=AudioStatus.FAILED))
             raise e
 
-# Create a global TTS service instance
-tts_service = TTSService()
+# Create a global audio service instance
+audio_service = AudioService()
