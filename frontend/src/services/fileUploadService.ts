@@ -176,3 +176,25 @@ export async function getFilesByVideoSession(sessionId: number): Promise<Backend
     throw error;
   }
 }
+
+export async function getPDFFilesByVideoSession(sessionId: number): Promise<BackendFile[]> {
+  try {
+    const response = await fetch(`http://localhost:8000/video-sessions/${sessionId}/files?category=pdf`);
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => "");
+      throw new Error(`Failed to fetch PDF files: ${response.status} ${errorText}`);
+    }
+
+    const data = await response.json();
+    const allFiles = data.files || [];
+    
+    // Double filter to ensure we only get PDF files
+    return allFiles.filter((file: BackendFile) => 
+      file.category === "pdf" || file.content_type === "application/pdf"
+    );
+  } catch (error) {
+    console.error("Failed to fetch PDF files:", error);
+    throw error;
+  }
+}

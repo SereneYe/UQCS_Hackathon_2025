@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState, useEffect } from "react";
-import { uploadFileToBackend, deleteFileFromBackend, getFilesByVideoSession, type BackendFile } from "../../services/fileUploadService";
+import { uploadFileToBackend, deleteFileFromBackend, getPDFFilesByVideoSession, type BackendFile } from "../../services/fileUploadService";
 import { getCurrentSessionIdFromStorage } from "../../services/videoSessionService";
 import FileItemCard from "./FileItemCard";
 import type { PreparedFile, FileKind } from "../../types/upload";
@@ -34,9 +34,7 @@ export default function PDFUploader({
 			
 			try {
 				setIsLoadingExisting(true);
-				const backendFiles = await getFilesByVideoSession(sessionId);
-				// Filter only PDF files
-				const pdfFiles = backendFiles.filter(file => file.category === "pdf");
+				const pdfFiles = await getPDFFilesByVideoSession(sessionId);
 				const preparedFiles = pdfFiles.map(convertBackendFileToPreparedFile);
 				setItems(preparedFiles);
 				// Only call onChange if we actually have files to avoid triggering collapse

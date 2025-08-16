@@ -43,11 +43,14 @@ export default function ImageUploader({
 				const backendFiles = await getFilesByVideoSession(sessionId);
 				// Filter only image files and take only the first one
 				const imageFiles = backendFiles.filter(file => file.category === "image");
-				const preparedFiles = imageFiles.length > 0 ? [convertBackendFileToPreparedFile(imageFiles[0])] : [];
-				setItems(preparedFiles);
-				// Only call onChange if we actually have files to avoid triggering collapse
-				if (preparedFiles.length > 0) {
+				if (imageFiles.length > 0) {
+					const preparedFile = await convertBackendFileToPreparedFile(imageFiles[0]);
+					const preparedFiles = [preparedFile];
+					setItems(preparedFiles);
+					// Only call onChange if we actually have files to avoid triggering collapse
 					onChange?.(preparedFiles);
+				} else {
+					setItems([]);
 				}
 			} catch (error) {
 				console.error("Failed to load existing image files:", error);
@@ -65,14 +68,28 @@ export default function ImageUploader({
 		return "other";
 	};
 	
-	const convertBackendFileToPreparedFile = (backendFile: BackendFile): PreparedFile => {
+	const convertBackendFileToPreparedFile = async (backendFile: BackendFile): Promise<PreparedFile> => {
+		// Generate signed URL for preview
+		let previewUrl = '';
+		try {
+			const response = await fetch(`http://localhost:8000/files/${backendFile.id}/download?expiration_minutes=60`);
+			if (response.ok) {
+				const downloadData = await response.json();
+				previewUrl = downloadData.download_url;
+			}
+		} catch (error) {
+			console.error("Failed to get signed URL for image preview:", error);
+			// Fallback to public_url if available
+			previewUrl = backendFile.public_url || '';
+		}
+
 		return {
 			id: `backend-${backendFile.id}`,
 			file: new File([], backendFile.original_filename, { type: backendFile.content_type }),
 			kind: classifyKind(backendFile.content_type),
 			name: backendFile.original_filename,
 			size: backendFile.file_size,
-			previewUrl: backendFile.public_url,
+			previewUrl: previewUrl,
 			status: "ready",
 			backendId: backendFile.id,
 		};
@@ -132,7 +149,15 @@ export default function ImageUploader({
 						const sessionId = getCurrentSessionIdFromStorage();
 						const uploadResult = await uploadFileToBackend(p.file, undefined, undefined, false, sessionId || undefined);
 						setItems((prev) => {
-							const next = prev.map((it) => (it.id === p.id ? {...it, status: "ready", backendId: uploadResult.id} : it));
+							const next = prev.map((it) => 
+								it.id === p.id ? {
+									...it, 
+									status: "ready", 
+									backendId: uploadResult.id,
+									// Preserve existing previewUrl for local files, or use backend URL
+									previewUrl: it.previewUrl || uploadResult.public_url
+								} : it
+							);
 							onChange?.(next.filter((i) => i.status === "ready"));
 							return next;
 						});
