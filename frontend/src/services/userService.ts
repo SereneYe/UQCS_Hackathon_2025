@@ -45,12 +45,34 @@ export const useGetUserByEmail = (email: string) => {
 
 export const useCreateUser = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: (userData: UserCreate) => 
+    mutationFn: (userData: UserCreate) =>
       apiClient.post<User>('/users/', userData),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // 将后端返回的 id 和 email 存入 localStorage
+      if (data?.id && data?.email) {
+        try {
+          localStorage.setItem('currentUserId', String(data.id));
+          localStorage.setItem('currentUserEmail', data.email);
+        } catch {
+          // 忽略 localStorage 写入异常（例如隐私模式）
+        }
+      }
+      // 维持原有失效查询逻辑
       queryClient.invalidateQueries({ queryKey: userKeys.all });
     },
   });
+};
+
+// 可选：提供一个小工具函数，方便其他模块获取当前用户ID
+export const getCurrentUserId = (): number | null => {
+  try {
+    const raw = localStorage.getItem('currentUserId');
+    if (!raw) return null;
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : null;
+  } catch {
+    return null;
+  }
 };
