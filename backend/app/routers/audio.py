@@ -12,7 +12,7 @@ import crud
 import models
 import schemas
 from database import get_db
-from tts_service import tts_service
+from app.services.audio_service import audio_service
 
 router = APIRouter(
     prefix="/audio",
@@ -30,7 +30,7 @@ async def synthesize_audio(
     Create a text-to-speech audio synthesis request
     """
     try:
-        audio_result = await tts_service.process_tts_request(db, audio)
+        audio_result = await audio_service.process_tts_request(db, audio)
         return audio_result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"TTS synthesis failed: {str(e)}")
@@ -88,7 +88,7 @@ def get_available_voices(language_code: Optional[str] = None):
     Get list of available voices from Google Cloud TTS
     """
     try:
-        voices = tts_service.get_available_voices(language_code)
+        voices = audio_service.get_available_voices(language_code)
         return {"voices": voices}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get voices: {str(e)}")
