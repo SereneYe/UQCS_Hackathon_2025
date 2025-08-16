@@ -16,6 +16,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
+      - name: Ensure slash-commands directory exists
+        run: mkdir -p /home/runner/work/_actions/anthropics/claude-code-action/beta/slash-commands
 
       - name: Automatic PR Review
         uses: anthropics/claude-code-action@beta
