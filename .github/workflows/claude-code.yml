@@ -11,6 +11,7 @@ jobs:
       contents: read
       pull-requests: read
       id-token: write
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -18,7 +19,7 @@ jobs:
           fetch-depth: 1
 
       - name: Automatic PR Review
-        uses: anthropics/claude-code-action@main
+        uses: anthropics/claude-code-action@beta  # ← don't use @main
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           timeout_minutes: "60"
