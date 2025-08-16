@@ -149,3 +149,64 @@ def get_files_count(db: Session) -> int:
 def get_files_count_by_user(db: Session, user_email: str) -> int:
     """Get count of files by user"""
     return db.query(models.File).filter(models.File.user_email == user_email).count()
+
+# Video Session CRUD Operations
+def create_video_session(db: Session, session: schemas.VideoSessionCreate) -> models.VideoSession:
+    """Create a new video session"""
+    db_session = models.VideoSession(
+        user_id=session.user_id,
+        session_name=session.session_name,
+        description=session.description
+    )
+    db.add(db_session)
+    db.commit()
+    db.refresh(db_session)
+    return db_session
+
+def get_video_session(db: Session, session_id: int) -> Optional[models.VideoSession]:
+    """Get video session by ID"""
+    return db.query(models.VideoSession).filter(models.VideoSession.id == session_id).first()
+
+def get_video_sessions_by_user(db: Session, user_id: int, skip: int = 0, limit: int = 100) -> List[models.VideoSession]:
+    """Get video sessions by user ID"""
+    return db.query(models.VideoSession).filter(models.VideoSession.user_id == user_id).offset(skip).limit(limit).all()
+
+def get_video_sessions(db: Session, skip: int = 0, limit: int = 100) -> List[models.VideoSession]:
+    """Get all video sessions with pagination"""
+    return db.query(models.VideoSession).offset(skip).limit(limit).all()
+
+def update_video_session(db: Session, session_id: int, session_update: schemas.VideoSessionUpdate) -> Optional[models.VideoSession]:
+    """Update video session"""
+    db_session = db.query(models.VideoSession).filter(models.VideoSession.id == session_id).first()
+    if db_session:
+        update_data = session_update.dict(exclude_unset=True)
+        for field, value in update_data.items():
+            setattr(db_session, field, value)
+        db.commit()
+        db.refresh(db_session)
+    return db_session
+
+def delete_video_session(db: Session, session_id: int) -> bool:
+    """Delete video session"""
+    db_session = db.query(models.VideoSession).filter(models.VideoSession.id == session_id).first()
+    if db_session:
+        db.delete(db_session)
+        db.commit()
+        return True
+    return False
+
+def get_video_sessions_count(db: Session) -> int:
+    """Get total count of video sessions"""
+    return db.query(models.VideoSession).count()
+
+def get_video_sessions_count_by_user(db: Session, user_id: int) -> int:
+    """Get count of video sessions by user"""
+    return db.query(models.VideoSession).filter(models.VideoSession.user_id == user_id).count()
+
+def get_files_by_video_session(db: Session, session_id: int, skip: int = 0, limit: int = 100) -> List[models.File]:
+    """Get files associated with a video session"""
+    return db.query(models.File).filter(models.File.video_session_id == session_id).offset(skip).limit(limit).all()
+
+def get_files_count_by_video_session(db: Session, session_id: int) -> int:
+    """Get count of files in a video session"""
+    return db.query(models.File).filter(models.File.video_session_id == session_id).count()
