@@ -37,7 +37,7 @@ async def create_video_session(
             try:
                 video_category = models.VideoCategory(category)
             except ValueError:
-                raise HTTPException(status_code=400, detail=f"Invalid category: {category}. Valid options are: congratulation_video, event_propagation_video")
+                raise HTTPException(status_code=400, detail=f"Invalid category: {category}. Valid options are: congratulation_video, event_propagation_video, company_introduction_video")
         
         session_data = schemas.VideoSessionCreate(
             user_id=user_id,
@@ -166,7 +166,7 @@ async def start_session_processing(
             try:
                 video_category = models.VideoCategory(category)
             except ValueError:
-                raise HTTPException(status_code=400, detail=f"Invalid category: {category}. Valid options are: congratulation_video, event_propagation_video")
+                raise HTTPException(status_code=400, detail=f"Invalid category: {category}. Valid options are: congratulation_video, event_propagation_video, company_introduction_video")
         
         # Update session with new prompt, category, and status
         update_data = schemas.VideoSessionUpdate(
