@@ -156,6 +156,8 @@ def create_video_session(db: Session, session: schemas.VideoSessionCreate) -> mo
     db_session = models.VideoSession(
         user_id=session.user_id,
         session_name=session.session_name,
+        user_prompt=session.user_prompt,
+        category=session.category,
         description=session.description
     )
     db.add(db_session)
