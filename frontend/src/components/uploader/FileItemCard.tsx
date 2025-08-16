@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import type { PreparedFile } from "../../types/upload";
+import PDFThumbnail from "./PDFThumbnail";
 
 interface Props {
   item: PreparedFile;
@@ -26,9 +27,7 @@ export default function FileItemCard({ item, onRemove }: Props) {
             className="h-full w-full object-cover"
           />
         ) : isPDF ? (
-          <div className="text-sm text-gray-200 px-3 text-center">
-            This is a PDF file.
-          </div>
+          <PDFThumbnail item={item} />
         ) : (
           <div className="text-sm text-gray-400 px-3 text-center">
             Cannot preview file type.
