@@ -1,8 +1,5 @@
-from typing import List, Optional
-from fastapi import FastAPI, Depends, HTTPException, status, BackgroundTasks, UploadFile, File
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
-from sqlalchemy.orm import Session
 import sys
 import os
 from dotenv import load_dotenv
@@ -12,12 +9,8 @@ load_dotenv()
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import crud, models, schemas
-from database import SessionLocal, engine, get_db
-from tts_service import tts_service
-from app.services.video_service import video_service
-from app.services.audio_video_service import audio_video_service
-from app.services.storage_service import storage_service
+import models
+from database import engine
 
 # Import all routers
 from app.routers import storage, users, videos, audio, video_processing
