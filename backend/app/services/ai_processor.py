@@ -126,7 +126,7 @@ class AIProcessor:
         """Process all PDF files in the session"""
         try:
             # Process PDFs using the PDF service
-            pdf_contents = await self.pdf_service.process_session_pdfs(session_id, self.storage_service)
+            pdf_contents = await self.pdf_service.process_session_pdfs(session_id)
             
             # Combine all PDF texts
             combined_content = self.pdf_service.combine_pdf_texts(pdf_contents)
