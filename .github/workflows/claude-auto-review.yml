@@ -11,7 +11,6 @@ jobs:
       contents: read
       pull-requests: read
       id-token: write
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -19,7 +18,7 @@ jobs:
           fetch-depth: 1
 
       - name: Automatic PR Review
-        uses: anthropics/claude-code-action@beta  # ← don't use @main
+        uses: anthropics/claude-code-action@beta
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           timeout_minutes: "60"
@@ -36,3 +35,4 @@ jobs:
 
             Provide constructive feedback with specific suggestions for improvement.
             Use inline comments to highlight specific areas of concern.
+          # allowed_tools: "mcp__github__create_pending_pull_request_review,mcp__github__add_comment_to_pending_review,mcp__github__submit_pending_pull_request_review,mcp__github__get_pull_request_diff"
