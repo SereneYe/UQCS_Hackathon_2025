@@ -26,7 +26,8 @@ export async function uploadFileToBackend(
   file: File,
   description?: string,
   tags?: string,
-  isPublic: boolean = false
+  isPublic: boolean = false,
+  videoSessionId?: number
 ): Promise<FileUploadResponse> {
   const userEmail = getCurrentUserEmailFromStorage();
   
@@ -36,6 +37,9 @@ export async function uploadFileToBackend(
   
   if (userEmail) {
     formData.append("user_email", userEmail);
+  }
+  if (videoSessionId) {
+    formData.append("video_session_id", videoSessionId.toString());
   }
   if (description) {
     formData.append("description", description);
@@ -66,7 +70,8 @@ export async function uploadFileToBackend(
 
 export async function uploadMultipleFiles(
   files: File[],
-  userEmail?: string
+  userEmail?: string,
+  videoSessionId?: number
 ): Promise<{
   message: string;
   files: Array<{
@@ -85,6 +90,10 @@ export async function uploadMultipleFiles(
   
   if (userEmail) {
     formData.append("user_email", userEmail);
+  }
+  
+  if (videoSessionId) {
+    formData.append("video_session_id", videoSessionId.toString());
   }
 
   try {
@@ -117,7 +126,7 @@ export async function getUploadUrlsCompat(files: File[]): Promise<{ urls: Array<
   };
 }
 
-export async function uploadFileToBackendCompat(url: string, file: File, headers: Record<string, string>) {
+export async function uploadFileToBackendCompat(url: string, file: File, headers: Record<string, string>, videoSessionId?: number) {
   // Compatibility function for existing FileUploader
-  return uploadFileToBackend(file);
+  return uploadFileToBackend(file, undefined, undefined, false, videoSessionId);
 }

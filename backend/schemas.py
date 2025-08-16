@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
 from typing import Optional, List
-from models import VideoStatus, AudioStatus, FileCategory, FileStatus
+from models import VideoStatus, AudioStatus, FileCategory, FileStatus, VideoSessionStatus
 
 # User Schemas
 class UserBase(BaseModel):
@@ -77,12 +77,14 @@ class FileBase(BaseModel):
 
 class FileCreate(FileBase):
     user_email: Optional[str] = None
+    video_session_id: Optional[int] = None
 
 class FileUpdate(BaseModel):
     description: Optional[str] = None
     tags: Optional[str] = None
     is_public: Optional[bool] = None
     status: Optional[FileStatus] = None
+    video_session_id: Optional[int] = None
 
 class FileUploadResponse(BaseModel):
     id: int
@@ -107,6 +109,7 @@ class FileDownloadResponse(BaseModel):
 class File(FileBase):
     id: int
     user_email: Optional[str] = None
+    video_session_id: Optional[int] = None
     gcs_filename: str
     bucket_name: str
     file_size: int
@@ -125,6 +128,41 @@ class File(FileBase):
 
 class FileList(BaseModel):
     files: List[File]
+    total: int
+    page: int
+    per_page: int
+
+# Video Session Schemas
+class VideoSessionBase(BaseModel):
+    user_id: int
+    session_name: Optional[str] = None
+    description: Optional[str] = None
+
+class VideoSessionCreate(VideoSessionBase):
+    pass
+
+class VideoSessionUpdate(BaseModel):
+    session_name: Optional[str] = None
+    status: Optional[VideoSessionStatus] = None
+    description: Optional[str] = None
+    total_files: Optional[int] = None
+    processed_files: Optional[int] = None
+    output_video_path: Optional[str] = None
+
+class VideoSession(VideoSessionBase):
+    id: int
+    status: VideoSessionStatus
+    total_files: int = 0
+    processed_files: int = 0
+    output_video_path: Optional[str] = None
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+class VideoSessionList(BaseModel):
+    sessions: List[VideoSession]
     total: int
     page: int
     per_page: int
