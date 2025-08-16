@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { Share2, Download, Lock, Sparkles, ArrowLeft } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from 'react-router-dom';
+import FileUploader from '../components/uploader/FileUploader';
+import type { PreparedFile } from '../types/upload';
 
 const videoCategories = [
   { id: 'rpg', name: 'RPG Adventure', icon: <span className="text-lg">🗡️</span> },
@@ -16,6 +18,7 @@ const CreateVideo = () => {
   const [videoIdea, setVideoIdea] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [uploadedFiles, setUploadedFiles] = useState<PreparedFile[]>([]);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -105,6 +108,19 @@ const CreateVideo = () => {
               </button>
             </div>
           </div>
+        </div>
+        
+        {/* File Upload Section */}
+        <div className="max-w-4xl mx-auto mb-8">
+          <FileUploader
+            maxFiles={10}
+            maxFileSizeMB={10}
+            onChange={(files) => {
+              setUploadedFiles(files);
+              // Optional: Log uploaded files for debugging
+              console.log('Ready files:', files);
+            }}
+          />
         </div>
         
         {/* video categories */}
