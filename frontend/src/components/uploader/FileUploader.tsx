@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { getUploadUrlFake, uploadFileFake } from "../../services/uploadServiceFake";
+import { getSignedUploadUrls, uploadFileToSignedUrl } from "../../services/uploadService";
 import FileItemCard from "./FileItemCard";
 import { ACCEPT_TYPES, MB, type PreparedFile, type FileKind } from "../../types/upload";
 
@@ -32,7 +32,7 @@ export default function FileUploader({
 	const validateFiles = (files: File[]): string | null => {
 		if (!files.length) return null;
 		if (items.length + files.length > maxFiles) {
-			return `Only support no more than 10 ${maxFiles} `;
+			return `Only support no more than ${maxFiles} files.`;
 		}
 		for (const f of files) {
 			if (f.size > maxFileSizeMB * MB) {
@@ -74,15 +74,18 @@ export default function FileUploader({
 			// Set to uploading status
 			setItems((prev) => prev.map((i) => (pending.some((p) => p.id === i.id) ? {...i, status: "uploading"} : i)));
 			
-			// Get fake upload URLs
-			const {urls} = await getUploadUrlFake(files);
-			
+			// Get signed upload URLs
+			const { urls } = await getSignedUploadUrls(files);
+
 			// Upload each file in parallel
 			await Promise.all(
 				pending.map(async (p, idx) => {
-					const url = urls[idx]?.url ?? "";
+					const signed = urls[idx];
+					if (!signed) {
+						throw new Error(`No signed URL for ${p.name}`);
+					}
 					try {
-						await uploadFileFake(url, p.file);
+						await uploadFileToSignedUrl(signed.url, p.file, signed.headers || {});
 						setItems((prev) => {
 							const next = prev.map((it) => (it.id === p.id ? {...it, status: "ready"} : it));
 							onChange?.(next.filter((i) => i.status === "ready"));

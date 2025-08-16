@@ -18,6 +18,7 @@ from tts_service import tts_service
 from app.services.video_service import video_service
 from app.services.audio_video_service import audio_video_service
 from app.services.storage_service import storage_service
+from app.routers import storage
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -34,6 +35,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include routers
+app.include_router(storage.router)
 
 @app.get("/")
 def read_root():

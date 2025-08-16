@@ -106,6 +106,51 @@ class StorageService:
         else:
             return f"public/{timestamp}_{file_stem}_{unique_id}{file_ext}"
     
+    def generate_signed_upload_url(
+        self,
+        original_filename: str,
+        file_size: int,
+        content_type: str,
+        user_id: Optional[int] = None,
+        expires_minutes: int = 10,
+    ) -> dict:
+        """
+        Generate signed URL for secure file upload
+        Returns:
+          {
+            "original_filename": "...",
+            "gcs_filename": "...",
+            "url": "https://storage.googleapis.com/...",
+            "method": "PUT",
+            "headers": {"Content-Type": "..."},
+            "expiresAt": "ISO time"
+          }
+        """
+        self.validate_file(original_filename, file_size)
+
+        gcs_filename = self.generate_unique_filename(original_filename, user_id)
+        blob = self.bucket.blob(gcs_filename)
+
+        expiration = datetime.utcnow() + timedelta(minutes=expires_minutes)
+
+        # Only allow PUT requests for 10 minutes
+        signed_url = blob.generate_signed_url(
+            version="v4",
+            expiration=expiration,
+            method="PUT",
+            content_type=content_type or "application/octet-stream",
+        )
+
+        return {
+            "original_filename": original_filename,
+            "gcs_filename": gcs_filename,
+            "bucket_name": self.bucket_name,
+            "url": signed_url,
+            "method": "PUT",
+            "headers": {"Content-Type": content_type or "application/octet-stream"},
+            "expiresAt": expiration.isoformat() + "Z",
+        }
+
     async def upload_file(
         self,
         file_content: bytes,
