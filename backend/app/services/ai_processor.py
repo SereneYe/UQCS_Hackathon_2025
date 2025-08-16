@@ -71,6 +71,7 @@ class AIProcessor:
             # Step 2: Process image files
             logger.info("Step 2: Processing image files")
             image_results = await self._process_session_images(session_id)
+            print('image_results', image_results)
             
             # Step 3: Generate AI prompts
             logger.info("Step 3: Generating AI prompts")
@@ -215,8 +216,7 @@ class AIProcessor:
         try:
             has_pdf = pdf_content and pdf_content.strip() != ""
             has_images = images and len(images) > 0
-            
-            print('pdf_content', pdf_content)
+
             if not has_pdf and not has_images:
                 # No PDF or image content, use standard prompt analysis
                 logger.info("No PDF or image content available, using standard prompt analysis")
@@ -229,7 +229,6 @@ class AIProcessor:
                     pdf_content, 
                     category
                 )
-                print('res', res)
                 return res
             else:
                 # Only images, no PDF - use standard prompt analysis
