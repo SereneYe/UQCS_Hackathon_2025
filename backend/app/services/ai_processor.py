@@ -67,6 +67,7 @@ class AIProcessor:
             # Step 1: Process PDF files
             logger.info("Step 1: Processing PDF files")
             pdf_results = await self._process_session_pdfs(session_id)
+            print("PDF files processed: 🥹" , pdf_results)
             
             # Step 2: Process image files
             logger.info("Step 2: Processing image files")
@@ -137,7 +138,19 @@ class AIProcessor:
             # Process PDFs using the PDF service
             pdf_contents = await self.pdf_service.process_session_pdfs(session_id)
             
-            # Combine all PDF texts
+            # Early return for empty PDF list
+            if not pdf_contents:
+                return {
+                    "status": "success",
+                    "pdf_files_processed": 0,
+                    "pdf_details": [],
+                    "combined_content": "",  # Empty string instead of message
+                    "total_characters": 0,
+                    "successful_extractions": 0,
+                    "failed_extractions": 0
+                }
+            
+            # Combine all PDF texts only if there are PDFs
             combined_content = self.pdf_service.combine_pdf_texts(pdf_contents)
             
             return {
