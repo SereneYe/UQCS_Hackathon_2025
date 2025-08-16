@@ -19,6 +19,19 @@ GCP_BUCKET_NAME = os.getenv("GCP_BUCKET_NAME", "hackathon-file-storage")
 GCP_PROJECT_ID = os.getenv("GCP_PROJECT_ID")
 GCP_STORAGE_BASE_URL = f"https://storage.googleapis.com/{GCP_BUCKET_NAME}"
 
+# OpenAI Configuration
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o")
+OPENAI_MAX_TOKENS = int(os.getenv("OPENAI_MAX_TOKENS", "1500"))
+OPENAI_TEMPERATURE = float(os.getenv("OPENAI_TEMPERATURE", "0.7"))
+
+# VEO3 Configuration
+VEO3_API_KEY = os.getenv("VEO3_API_KEY")
+VEO3_BASE_URL = os.getenv("VEO3_BASE_URL", "https://api.qingyuntop.top")
+VEO3_MODEL = os.getenv("VEO3_MODEL", "veo3-fast")
+VEO3_POLL_INTERVAL = int(os.getenv("VEO3_POLL_INTERVAL", "5"))
+VEO3_MAX_WAIT_TIME = int(os.getenv("VEO3_MAX_WAIT_TIME", "900"))  # 15 minutes
+
 # File upload settings
 MAX_FILE_SIZE = 100 * 1024 * 1024  # 100MB
 ALLOWED_AUDIO_EXTENSIONS = {".mp3", ".wav", ".aac", ".ogg", ".m4a"}
