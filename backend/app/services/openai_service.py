@@ -336,66 +336,6 @@ class OpenAIService:
                 "pdf_processed": False
             }
 
-    def _validate_analysis_integration(self, analysis: dict, video_prompt: str) -> dict:
-        """
-        Simplified validation of analysis integration into video prompt
-        """
-        video_lower = video_prompt.lower()
-        missing = []
-        checks_passed = 0
-        
-        # Check key elements (most important)
-        key_elements = analysis.get("key_elements", [])
-        elements_found = sum(1 for element in key_elements 
-                            if any(word in video_lower for word in element.lower().split() if len(word) > 2))
-        
-        if elements_found < len(key_elements) * 0.8:  # 80% threshold
-            missing.append(f"Key elements missing: {len(key_elements) - elements_found}/{len(key_elements)}")
-        else:
-            checks_passed += 1
-        
-        # Check main theme
-        theme_words = analysis.get("main_theme", "").lower().split()
-        if any(word in video_lower for word in theme_words if len(word) > 3):
-            checks_passed += 1
-        else:
-            missing.append("Main theme not reflected")
-        
-        # Check style/mood integration (simplified)
-        style_mood_terms = ["cinematic", "shot", "camera", "lighting", "lens", "professional", "dramatic", "smooth", "dynamic"]
-        if any(term in video_lower for term in style_mood_terms):
-            checks_passed += 1
-        else:
-            missing.append("Technical specifications missing")
-        
-        # Calculate simple score
-        total_checks = 3
-        score = (checks_passed / total_checks) * 100
-        
-        return {
-            "integration_score": score,
-            "well_integrated": score >= 75,
-            "missing_elements": missing,
-            "elements_found": f"{elements_found}/{len(key_elements)}"
-        }
-
-    def _get_integration_recommendations(self, missing_elements: list) -> list:
-        """Generate recommendations for improving integration"""
-        recommendations = []
-
-        for element in missing_elements:
-            if "main_theme" in element.lower():
-                recommendations.append("Add environment/setting description that reflects the main theme")
-            elif "key element" in element.lower():
-                recommendations.append(
-                    f"Include '{element.split(': ')[1]}' as a visible object or character in the scene")
-            elif "style preference" in element.lower():
-                recommendations.append("Add technical camera specifications matching the style preference")
-            elif "mood" in element.lower():
-                recommendations.append("Add lighting and camera movement that express the intended mood")
-
-        return recommendations
-
 # Create a global OpenAI service instance with lazy loading
 def get_openai_service():
     """Get OpenAI service instance"""
