@@ -10,6 +10,7 @@ import models
 import crud
 from database import get_db
 from sqlalchemy.orm import Session
+from app.services.storage_service import storage_service
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -21,15 +22,16 @@ class ImageProcessor:
     def __init__(self):
         pass
     
-    async def get_session_image_url(self, session_id: int) -> Optional[str]:
+    async def get_session_image_url(self, session_id: int, expiration_minutes: int = 60) -> Optional[str]:
         """
-        Get the public URL for the image associated with a video session
+        Get the signed download URL for the image associated with a video session
         
         Args:
             session_id: Video session ID
+            expiration_minutes: How long the signed URL should be valid (default 60 minutes)
             
         Returns:
-            Public URL of the image if exists, None otherwise
+            Signed download URL of the image if exists, None otherwise
         """
         try:
             # Get database session
@@ -42,7 +44,17 @@ class ImageProcessor:
             for file in files:
                 if file.content_type and file.content_type.startswith("image/"):
                     logger.info(f"Found image file for session {session_id}: {file.original_filename}")
-                    return file.public_url
+                    
+                    # Generate signed URL for download
+                    if file.gcs_filename:
+                        signed_url = storage_service.generate_signed_download_url(
+                            file.gcs_filename, 
+                            expiration_minutes
+                        )
+                        return signed_url
+                    else:
+                        # Fallback to public_url if gcs_filename is not available
+                        return file.public_url
             
             logger.info(f"No image file found for session {session_id}")
             return None
@@ -51,15 +63,16 @@ class ImageProcessor:
             logger.error(f"Failed to get session image URL: {e}")
             return None
     
-    async def process_session_image(self, session_id: int) -> Dict[str, Any]:
+    async def process_session_image(self, session_id: int, expiration_minutes: int = 60) -> Dict[str, Any]:
         """
-        Process image file for a video session and return metadata
+        Process image file for a video session and return metadata with signed download URL
         
         Args:
             session_id: Video session ID
+            expiration_minutes: How long the signed URL should be valid (default 60 minutes)
             
         Returns:
-            Dictionary with image processing results
+            Dictionary with image processing results including signed download URL
         """
         try:
             # Get database session
@@ -77,6 +90,7 @@ class ImageProcessor:
                     "status": "success",
                     "has_image": False,
                     "image_url": None,
+                    "download_url": None,
                     "image_info": None
                 }
             
@@ -88,19 +102,37 @@ class ImageProcessor:
             
             logger.info(f"Processing image file: {image_file.original_filename}")
             
+            # Generate signed download URL
+            download_url = None
+            if image_file.gcs_filename:
+                try:
+                    download_url = storage_service.generate_signed_download_url(
+                        image_file.gcs_filename, 
+                        expiration_minutes
+                    )
+                    logger.info(f"Generated signed URL for image file: {image_file.original_filename}")
+                except Exception as e:
+                    logger.error(f"Failed to generate signed URL for image: {e}")
+                    download_url = image_file.public_url  # Fallback to static URL
+            else:
+                download_url = image_file.public_url  # Fallback to static URL
+            
             image_info = {
                 "file_id": image_file.id,
                 "filename": image_file.original_filename,
                 "content_type": image_file.content_type,
                 "file_size": image_file.file_size,
-                "public_url": image_file.public_url,
+                "public_url": download_url,
+                "download_url": download_url,
+                "gcs_filename": image_file.gcs_filename,
                 "created_at": image_file.created_at.isoformat() if image_file.created_at else None
             }
             
             return {
                 "status": "success",
                 "has_image": True,
-                "image_url": image_file.public_url,
+                "image_url": download_url,  # Use signed URL as the main image URL
+                "download_url": download_url,
                 "image_info": image_info
             }
             
@@ -111,6 +143,7 @@ class ImageProcessor:
                 "error": str(e),
                 "has_image": False,
                 "image_url": None,
+                "download_url": None,
                 "image_info": None
             }
 
