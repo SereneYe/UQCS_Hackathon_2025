@@ -130,3 +130,49 @@ export async function uploadFileToBackendCompat(url: string, file: File, headers
   // Compatibility function for existing FileUploader
   return uploadFileToBackend(file, undefined, undefined, false, videoSessionId);
 }
+
+export async function deleteFileFromBackend(fileId: number): Promise<void> {
+  try {
+    const response = await fetch(`http://localhost:8000/files/${fileId}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => "");
+      throw new Error(`Delete failed: ${response.status} ${errorText}`);
+    }
+  } catch (error) {
+    console.error("File deletion error:", error);
+    throw error;
+  }
+}
+
+export type BackendFile = {
+  id: number;
+  original_filename: string;
+  gcs_filename: string;
+  file_size: number;
+  content_type: string;
+  category: "image" | "pdf" | "audio" | "video" | "other";
+  status: string;
+  public_url?: string;
+  created_at: string;
+  video_session_id?: number;
+};
+
+export async function getFilesByVideoSession(sessionId: number): Promise<BackendFile[]> {
+  try {
+    const response = await fetch(`http://localhost:8000/video-sessions/${sessionId}/files`);
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => "");
+      throw new Error(`Failed to fetch files: ${response.status} ${errorText}`);
+    }
+
+    const data = await response.json();
+    return data.files || [];
+  } catch (error) {
+    console.error("Failed to fetch session files:", error);
+    throw error;
+  }
+}

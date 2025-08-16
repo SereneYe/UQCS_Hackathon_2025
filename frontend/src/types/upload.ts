@@ -9,6 +9,7 @@ export interface PreparedFile {
   previewUrl?: string;
   status: "pending" | "uploading" | "ready" | "error";
   errorMsg?: string;
+  backendId?: number;
 }
 
 export const ACCEPT_TYPES = [

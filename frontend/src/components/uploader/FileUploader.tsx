@@ -1,5 +1,6 @@
-import { useCallback, useMemo, useState } from "react";
-import { uploadFileToBackend } from "../../services/fileUploadService";
+import { useCallback, useMemo, useState, useEffect } from "react";
+import { uploadFileToBackend, deleteFileFromBackend, getFilesByVideoSession, type BackendFile } from "../../services/fileUploadService";
+import { getCurrentSessionIdFromStorage } from "../../services/videoSessionService";
 import FileItemCard from "./FileItemCard";
 import { ACCEPT_TYPES, MB, type PreparedFile, type FileKind } from "../../types/upload";
 
@@ -19,14 +20,52 @@ export default function FileUploader({
 	const [items, setItems] = useState<PreparedFile[]>([]);
 	const [isDragging, setIsDragging] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const [isLoadingExisting, setIsLoadingExisting] = useState(false);
 	const isUploading = items.some((i) => i.status === "uploading");
 	
 	const acceptSet = useMemo(() => new Set(accept), [accept]);
+	
+	// Load existing files for current session on mount
+	useEffect(() => {
+		const loadExistingFiles = async () => {
+			const sessionId = getCurrentSessionIdFromStorage();
+			if (!sessionId) return;
+			
+			try {
+				setIsLoadingExisting(true);
+				const backendFiles = await getFilesByVideoSession(sessionId);
+				const preparedFiles = backendFiles.map(convertBackendFileToPreparedFile);
+				setItems(preparedFiles);
+				onChange?.(preparedFiles);
+			} catch (error) {
+				console.error("Failed to load existing files:", error);
+				setError("Failed to load existing files");
+			} finally {
+				setIsLoadingExisting(false);
+			}
+		};
+		
+		loadExistingFiles();
+	}, []); // Empty dependency array - only run on mount
 	
 	const classifyKind = (type: string): FileKind => {
 		if (type.startsWith("image/")) return "image";
 		if (type === "application/pdf") return "pdf";
 		return "other";
+	};
+	
+	const convertBackendFileToPreparedFile = (backendFile: BackendFile): PreparedFile => {
+		return {
+			id: `backend-${backendFile.id}`,
+			// Create a mock File object for display purposes
+			file: new File([], backendFile.original_filename, { type: backendFile.content_type }),
+			kind: classifyKind(backendFile.content_type),
+			name: backendFile.original_filename,
+			size: backendFile.file_size,
+			previewUrl: backendFile.public_url,
+			status: "ready",
+			backendId: backendFile.id,
+		};
 	};
 	
 	const validateFiles = (files: File[]): string | null => {
@@ -78,9 +117,10 @@ export default function FileUploader({
 			await Promise.all(
 				pending.map(async (p) => {
 					try {
-						const result = await uploadFileToBackend(p.file);
+						const sessionId = getCurrentSessionIdFromStorage();
+						const uploadResult = await uploadFileToBackend(p.file, undefined, undefined, false, sessionId || undefined);
 						setItems((prev) => {
-							const next = prev.map((it) => (it.id === p.id ? {...it, status: "ready"} : it));
+							const next = prev.map((it) => (it.id === p.id ? {...it, status: "ready", backendId: uploadResult.id} : it));
 							onChange?.(next.filter((i) => i.status === "ready"));
 							return next;
 						});
@@ -137,7 +177,19 @@ export default function FileUploader({
 		setIsDragging(false);
 	};
 	
-	const removeItem = (id: string) => {
+	const removeItem = async (id: string) => {
+		const item = items.find(i => i.id === id);
+		
+		// If file was successfully uploaded, delete from backend
+		if (item && item.backendId && item.status === "ready") {
+			try {
+				await deleteFileFromBackend(item.backendId);
+			} catch (error) {
+				console.error("Failed to delete file from backend:", error);
+				// Continue with local removal even if backend delete fails
+			}
+		}
+		
 		setItems((prev) => {
 			const next = prev.filter((i) => i.id !== id);
 			onChange?.(next.filter((i) => i.status === "ready"));
@@ -192,6 +244,10 @@ export default function FileUploader({
 			
 			{isUploading && (
 				<div className="mt-3 text-xs text-gray-400">Uploading...</div>
+			)}
+			
+			{isLoadingExisting && (
+				<div className="mt-3 text-xs text-gray-400">Loading existing files...</div>
 			)}
 		</div>
 	);
