@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from './api';
+import { createVideoSessionForCurrentUser } from './videoSessionService';
 
 export interface User {
   id: number;
@@ -49,23 +50,47 @@ export const useCreateUser = () => {
   return useMutation({
     mutationFn: (userData: UserCreate) =>
       apiClient.post<User>('/users/', userData),
-    onSuccess: (data) => {
-      // 将后端返回的 id 和 email 存入 localStorage
+    // Note: onSuccess can be async. This ensures proper sequence in mutate/mutateAsync.
+    onSuccess: async (data) => {
+      // save to localStorage (preserve original logic)
       if (data?.id && data?.email) {
         try {
           localStorage.setItem('currentUserId', String(data.id));
           localStorage.setItem('currentUserEmail', data.email);
         } catch {
-          // 忽略 localStorage 写入异常（例如隐私模式）
+          // ignore the error
         }
       }
-      // 维持原有失效查询逻辑
+
+      // New: After user creation succeeds, immediately create video session and write sessionId to localStorage
+      // Don't require session_name/description here; can be passed from calling layer if needed.
+      try {
+        await createVideoSessionForCurrentUser();
+      } catch (e) {
+        // Don't throw error to avoid blocking user flow; can show toast warning in UI
+        console.warn("Create video session failed:", e);
+      }
+      
       queryClient.invalidateQueries({ queryKey: userKeys.all });
     },
   });
 };
 
-// 可选：提供一个小工具函数，方便其他模块获取当前用户ID
+// Optional: If caller wants "explicitly wait for user + session both created before continuing (like navigation)",
+// recommend exporting a convenience Hook that uses mutateAsync directly to ensure sequence.
+export const useCreateUserAndBootstrapSession = () => {
+  const mutation = useCreateUser();
+
+  // Return a convenient mutateAsync wrapper to ensure caller awaits completion before navigation
+  const createAndEnsureSession = async (payload: UserCreate) => {
+    // mutateAsync will wait for onSuccess internal async logic to complete
+    const result = await mutation.mutateAsync(payload);
+    return result;
+  };
+
+  return { ...mutation, createAndEnsureSession };
+};
+
 export const getCurrentUserId = (): number | null => {
   try {
     const raw = localStorage.getItem('currentUserId');
