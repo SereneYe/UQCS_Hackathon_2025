@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 import crud
 import schemas
 from models import AudioStatus
+from config import get_audio_file_path
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -155,9 +156,8 @@ class TTSService:
                 audio_format=audio_create.audio_format
             )
             
-            # Generate file path
-            file_extension = audio_create.audio_format.lower()
-            file_path = f"audio_files/{audio_record.id}.{file_extension}"
+            # Generate file path using config helper
+            file_path = get_audio_file_path(audio_record.id, audio_create.audio_format)
             
             # Save audio file
             file_size = self.save_audio_file(audio_content, file_path)
