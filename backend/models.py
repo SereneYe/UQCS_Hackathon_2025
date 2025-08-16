@@ -26,6 +26,13 @@ class FileStatus(enum.Enum):
     FAILED = "failed"
     DELETED = "deleted"
 
+class VideoSessionStatus(enum.Enum):
+    PENDING = "pending"
+    ACTIVE = "active"
+    PROCESSING = "processing"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
 class User(Base):
     __tablename__ = "users"
 
@@ -60,11 +67,26 @@ class Audio(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
+class VideoSession(Base):
+    __tablename__ = "video_sessions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=False)
+    session_name = Column(String, nullable=True)  # Optional name for the session
+    status = Column(Enum(VideoSessionStatus), index=True, default=VideoSessionStatus.PENDING)
+    description = Column(Text, nullable=True)
+    total_files = Column(Integer, default=0)  # Track number of files in session
+    processed_files = Column(Integer, default=0)  # Track processed files
+    output_video_path = Column(String, nullable=True)  # Path to final video
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
 class File(Base):
     __tablename__ = "files"
 
     id = Column(Integer, primary_key=True, index=True)
     user_email = Column(String, index=True)  # User who uploaded the file
+    video_session_id = Column(Integer, ForeignKey("video_sessions.id"), nullable=True, index=True)  # Link to video session
     original_filename = Column(String, nullable=False)
     gcs_filename = Column(String, nullable=False, unique=True)  # Unique filename in GCS
     bucket_name = Column(String, nullable=False)

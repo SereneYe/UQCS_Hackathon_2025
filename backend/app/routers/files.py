@@ -24,6 +24,7 @@ router = APIRouter(
 async def upload_file(
     file: UploadFile = File(...),
     user_email: Optional[str] = Form(None),
+    video_session_id: Optional[int] = Form(None),
     description: Optional[str] = Form(None),
     tags: Optional[str] = Form(None),
     is_public: bool = Form(False),
@@ -46,6 +47,7 @@ async def upload_file(
         # Create database record
         file_data = {
             "user_email": user_email,
+            "video_session_id": video_session_id,
             "original_filename": gcs_info["original_filename"],
             "gcs_filename": gcs_info["gcs_filename"],
             "bucket_name": gcs_info["bucket_name"],
@@ -61,6 +63,16 @@ async def upload_file(
         }
         
         db_file = crud.create_file(db, file_data)
+        
+        # Update video session file count if session is provided
+        if video_session_id:
+            try:
+                session = crud.get_video_session(db, video_session_id)
+                if session:
+                    total_files = crud.get_files_count_by_video_session(db, video_session_id)
+                    crud.update_video_session(db, video_session_id, schemas.VideoSessionUpdate(total_files=total_files))
+            except Exception as e:
+                print(f"Warning: Could not update session file count: {e}")
         
         return schemas.FileUploadResponse(
             id=db_file.id,
@@ -81,6 +93,7 @@ async def upload_file(
 async def upload_multiple_files(
     files: List[UploadFile] = File(...),
     user_email: Optional[str] = Form(None),
+    video_session_id: Optional[int] = Form(None),
     db: Session = Depends(get_db)
 ):
     """
@@ -100,6 +113,7 @@ async def upload_multiple_files(
             
             file_data = {
                 "user_email": user_email,
+                "video_session_id": video_session_id,
                 "original_filename": gcs_info["original_filename"],
                 "gcs_filename": gcs_info["gcs_filename"],
                 "bucket_name": gcs_info["bucket_name"],
@@ -118,6 +132,16 @@ async def upload_multiple_files(
                 "size": db_file.file_size,
                 "status": "uploaded"
             })
+        
+        # Update video session file count if session is provided
+        if video_session_id:
+            try:
+                session = crud.get_video_session(db, video_session_id)
+                if session:
+                    total_files = crud.get_files_count_by_video_session(db, video_session_id)
+                    crud.update_video_session(db, video_session_id, schemas.VideoSessionUpdate(total_files=total_files))
+            except Exception as e:
+                print(f"Warning: Could not update session file count: {e}")
         
         return {
             "message": f"Successfully uploaded {len(uploaded_files)} files",
