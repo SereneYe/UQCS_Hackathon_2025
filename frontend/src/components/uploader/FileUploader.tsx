@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { getSignedUploadUrls, uploadFileToSignedUrl } from "../../services/uploadService";
+import { uploadFileToBackend } from "../../services/fileUploadService";
 import FileItemCard from "./FileItemCard";
 import { ACCEPT_TYPES, MB, type PreparedFile, type FileKind } from "../../types/upload";
 
@@ -74,18 +74,11 @@ export default function FileUploader({
 			// Set to uploading status
 			setItems((prev) => prev.map((i) => (pending.some((p) => p.id === i.id) ? {...i, status: "uploading"} : i)));
 			
-			// Get signed upload URLs
-			const { urls } = await getSignedUploadUrls(files);
-
-			// Upload each file in parallel
+			// Upload each file to backend in parallel
 			await Promise.all(
-				pending.map(async (p, idx) => {
-					const signed = urls[idx];
-					if (!signed) {
-						throw new Error(`No signed URL for ${p.name}`);
-					}
+				pending.map(async (p) => {
 					try {
-						await uploadFileToSignedUrl(signed.url, p.file, signed.headers || {});
+						const result = await uploadFileToBackend(p.file);
 						setItems((prev) => {
 							const next = prev.map((it) => (it.id === p.id ? {...it, status: "ready"} : it));
 							onChange?.(next.filter((i) => i.status === "ready"));
@@ -93,6 +86,7 @@ export default function FileUploader({
 						});
 					} catch (e: unknown) {
 						const errorMsg = e instanceof Error ? e.message : "Failed to upload file";
+						console.error("Upload failed:", errorMsg);
 						setItems((prev) =>
 							prev.map((it) =>
 								it.id === p.id ? {...it, status: "error", errorMsg} : it
@@ -107,7 +101,7 @@ export default function FileUploader({
 			// Set all pending items to error
 			setItems((prev) =>
 				prev.map((it) =>
-					pending.some((p) => p.id === it.id) ? {...it, status: "error", errorMsg: "Fail to initialize"} : it
+					pending.some((p) => p.id === it.id) ? {...it, status: "error", errorMsg: "Failed to initialize"} : it
 				)
 			);
 		}
