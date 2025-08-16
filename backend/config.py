@@ -15,7 +15,7 @@ GENERATED_VIDEO_DIR = TEMP_DIR / "generated_video"
 PROCESSED_VIDEO_DIR = TEMP_DIR / "processed_video"
 
 # GCP Storage Configuration
-GCP_BUCKET_NAME = os.getenv("GCS_BUCKET_NAME", "hackathon-file-storage")
+GCP_BUCKET_NAME = os.getenv("GCP_BUCKET_NAME", "hackathon-file-storage")
 GCP_PROJECT_ID = os.getenv("GCP_PROJECT_ID")
 GCP_STORAGE_BASE_URL = f"https://storage.googleapis.com/{GCP_BUCKET_NAME}"
 
