@@ -22,6 +22,8 @@ router = APIRouter(
 async def create_video_session(
     user_id: int = Form(...),
     session_name: Optional[str] = Form(None),
+    user_prompt: Optional[str] = Form(None),
+    category: Optional[str] = Form(None),
     description: Optional[str] = Form(None),
     db: Session = Depends(get_db)
 ):
@@ -29,9 +31,19 @@ async def create_video_session(
     Create a new video session for a user
     """
     try:
+        # Convert category string to enum if provided
+        video_category = None
+        if category:
+            try:
+                video_category = models.VideoCategory(category)
+            except ValueError:
+                raise HTTPException(status_code=400, detail=f"Invalid category: {category}. Valid options are: congratulation_video, event_propagation_video")
+        
         session_data = schemas.VideoSessionCreate(
             user_id=user_id,
             session_name=session_name,
+            user_prompt=user_prompt,
+            category=video_category,
             description=description
         )
         
@@ -134,26 +146,45 @@ async def get_session_files(
         raise HTTPException(status_code=500, detail=f"Failed to get session files: {str(e)}")
 
 @router.post("/{session_id}/start-processing")
-async def start_session_processing(session_id: int, db: Session = Depends(get_db)):
+async def start_session_processing(
+    session_id: int,
+    user_prompt: Optional[str] = Form(None),
+    category: Optional[str] = Form(None),
+    db: Session = Depends(get_db)
+):
     """
-    Start video processing for a session
+    Start video processing for a session, optionally updating user prompt and category
     """
     try:
         db_session = crud.get_video_session(db, session_id)
         if not db_session:
             raise HTTPException(status_code=404, detail="Video session not found")
         
-        # Update session status to processing
-        update_data = schemas.VideoSessionUpdate(status=models.VideoSessionStatus.PROCESSING)
+        # Convert category string to enum if provided
+        video_category = None
+        if category:
+            try:
+                video_category = models.VideoCategory(category)
+            except ValueError:
+                raise HTTPException(status_code=400, detail=f"Invalid category: {category}. Valid options are: congratulation_video, event_propagation_video")
+        
+        # Update session with new prompt, category, and status
+        update_data = schemas.VideoSessionUpdate(
+            user_prompt=user_prompt,
+            category=video_category,
+            status=models.VideoSessionStatus.PROCESSING
+        )
         updated_session = crud.update_video_session(db, session_id, update_data)
         
         # Here you would typically trigger your video processing pipeline
-        # For now, we'll just update the status
+        # For now, we'll just update the status and fields
         
         return {
             "message": "Video processing started",
             "session_id": session_id,
-            "status": updated_session.status
+            "status": updated_session.status,
+            "user_prompt": updated_session.user_prompt,
+            "category": updated_session.category
         }
         
     except Exception as e:

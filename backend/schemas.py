@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
 from typing import Optional, List
-from models import VideoStatus, AudioStatus, FileCategory, FileStatus, VideoSessionStatus
+from models import VideoStatus, AudioStatus, FileCategory, FileStatus, VideoSessionStatus, VideoCategory
 
 # User Schemas
 class UserBase(BaseModel):
@@ -136,6 +136,8 @@ class FileList(BaseModel):
 class VideoSessionBase(BaseModel):
     user_id: int
     session_name: Optional[str] = None
+    user_prompt: Optional[str] = None
+    category: Optional[VideoCategory] = None
     description: Optional[str] = None
 
 class VideoSessionCreate(VideoSessionBase):
@@ -143,6 +145,8 @@ class VideoSessionCreate(VideoSessionBase):
 
 class VideoSessionUpdate(BaseModel):
     session_name: Optional[str] = None
+    user_prompt: Optional[str] = None
+    category: Optional[VideoCategory] = None
     status: Optional[VideoSessionStatus] = None
     description: Optional[str] = None
     total_files: Optional[int] = None

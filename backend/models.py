@@ -33,6 +33,10 @@ class VideoSessionStatus(enum.Enum):
     COMPLETED = "completed"
     FAILED = "failed"
 
+class VideoCategory(enum.Enum):
+    CONGRATULATION_VIDEO = "congratulation_video"
+    EVENT_PROPAGATION_VIDEO = "event_propagation_video"
+
 class User(Base):
     __tablename__ = "users"
 
@@ -73,6 +77,8 @@ class VideoSession(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=False)
     session_name = Column(String, nullable=True)  # Optional name for the session
+    user_prompt = Column(Text, nullable=True)  # User's prompt for video creation
+    category = Column(Enum(VideoCategory), nullable=True)  # Video category
     status = Column(Enum(VideoSessionStatus), index=True, default=VideoSessionStatus.PENDING)
     description = Column(Text, nullable=True)
     total_files = Column(Integer, default=0)  # Track number of files in session
