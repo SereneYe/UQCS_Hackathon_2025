@@ -1,5 +1,5 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 import sys
@@ -23,10 +23,10 @@ router = APIRouter(
 @router.post("/upload", response_model=schemas.FileUploadResponse)
 async def upload_file(
     file: UploadFile = File(...),
-    user_email: Optional[str] = None,
-    description: Optional[str] = None,
-    tags: Optional[str] = None,
-    is_public: bool = False,
+    user_email: Optional[str] = Form(None),
+    description: Optional[str] = Form(None),
+    tags: Optional[str] = Form(None),
+    is_public: bool = Form(False),
     db: Session = Depends(get_db)
 ):
     """
@@ -80,7 +80,7 @@ async def upload_file(
 @router.post("/upload-multiple")
 async def upload_multiple_files(
     files: List[UploadFile] = File(...),
-    user_email: Optional[str] = None,
+    user_email: Optional[str] = Form(None),
     db: Session = Depends(get_db)
 ):
     """
