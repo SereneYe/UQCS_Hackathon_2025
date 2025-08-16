@@ -55,6 +55,11 @@ const CreateVideo = () => {
   // Handler functions for skip actions
   const handleSkipImages = () => {
     setImagesSkipped(true);
+    setEditingImages(false); // Close the image uploader
+    // Auto-open PDF uploader if it's available
+    if (hasVideoIdea && (hasImages || true)) { // true because we're skipping images
+      setEditingPDFs(true);
+    }
     toast({
       title: "Images Skipped",
       description: "Proceeding without images. You can add them later if needed.",
@@ -64,6 +69,7 @@ const CreateVideo = () => {
 
   const handleSkipPDFs = () => {
     setPdfsSkipped(true);
+    setEditingPDFs(false); // Close the PDF uploader
     toast({
       title: "PDFs Skipped", 
       description: "Proceeding without PDF documents. You can add them later if needed.",
@@ -235,6 +241,12 @@ const CreateVideo = () => {
                             </span>
                             <div className="flex items-center space-x-3">
                               <button
+                                onClick={handleSkipImages}
+                                className="text-gray-400 hover:text-white text-sm underline-offset-2 hover:underline transition-colors"
+                              >
+                                Skip
+                              </button>
+                              <button
                                 onClick={() => setEditingImages(false)}
                                 className="text-gray-400 hover:text-white text-sm underline-offset-2 hover:underline transition-colors"
                               >
@@ -325,6 +337,12 @@ const CreateVideo = () => {
                               {uploadedPDFs.length > 0 ? `${uploadedPDFs.length} PDF(s) uploaded` : 'Upload PDF documents for your video'}
                             </span>
                             <div className="flex items-center space-x-3">
+                              <button
+                                onClick={handleSkipPDFs}
+                                className="text-gray-400 hover:text-white text-sm underline-offset-2 hover:underline transition-colors"
+                              >
+                                Skip
+                              </button>
                               <button
                                 onClick={() => setEditingPDFs(false)}
                                 className="text-gray-400 hover:text-white text-sm underline-offset-2 hover:underline transition-colors"
