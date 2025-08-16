@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 from .pdf_service import pdf_service
 from .openai_service import openai_service
 from .storage_service import storage_service
+from .image_service import image_service
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -27,6 +28,7 @@ class AIProcessor:
         self.pdf_service = pdf_service
         self.openai_service = openai_service
         self.storage_service = storage_service
+        self.image_service = image_service
     
     async def process_video_session(
         self, 
@@ -66,19 +68,25 @@ class AIProcessor:
             logger.info("Step 1: Processing PDF files")
             pdf_results = await self._process_session_pdfs(session_id)
             
-            # Step 2: Generate AI prompts
-            logger.info("Step 2: Generating AI prompts")
+            # Step 2: Process image files
+            logger.info("Step 2: Processing image files")
+            image_results = await self._process_session_images(session_id)
+            
+            # Step 3: Generate AI prompts
+            logger.info("Step 3: Generating AI prompts")
             ai_results = await self._generate_ai_prompts(
                 final_user_prompt, 
                 pdf_results["combined_content"], 
+                image_results["images"],
                 final_category
             )
             
-            # Step 3: Update session with results
-            logger.info("Step 3: Updating session with results")
+            # Step 4: Update session with results
+            logger.info("Step 4: Updating session with results")
             session_update = await self._update_session_with_results(
                 session_id, 
                 pdf_results, 
+                image_results,
                 ai_results,
                 final_user_prompt,
                 final_category
@@ -89,6 +97,7 @@ class AIProcessor:
                 "session_id": session_id,
                 "status": "completed",
                 "pdf_processing": pdf_results,
+                "image_processing": image_results,
                 "ai_generation": ai_results,
                 "session_updated": session_update,
                 "prompts_generated": {
@@ -151,26 +160,66 @@ class AIProcessor:
                 "total_characters": 0
             }
     
+    async def _process_session_images(self, session_id: int) -> Dict[str, Any]:
+        """Process image file in the session"""
+        try:
+            # Process image using the image service
+            image_result = await self.image_service.process_session_image(session_id)
+            
+            if image_result["status"] == "success" and image_result["has_image"]:
+                images = [image_result["image_url"]]
+                return {
+                    "status": "success",
+                    "has_image": True,
+                    "images": images,
+                    "image_info": image_result["image_info"]
+                }
+            else:
+                return {
+                    "status": "success", 
+                    "has_image": False,
+                    "images": [],
+                    "image_info": None
+                }
+                
+        except Exception as e:
+            logger.error(f"Image processing failed: {e}")
+            return {
+                "status": "failed",
+                "error": str(e),
+                "has_image": False,
+                "images": [],
+                "image_info": None
+            }
+    
     async def _generate_ai_prompts(
         self, 
         user_prompt: str, 
         pdf_content: str, 
+        images: list,
         category: Optional[models.VideoCategory]
     ) -> Dict[str, Any]:
         """Generate AI prompts using OpenAI service"""
         try:
-            if not pdf_content or pdf_content.strip() == "":
-                # If no PDF content, use original OpenAI service
-                logger.info("No PDF content available, using standard prompt analysis")
+            has_pdf = pdf_content and pdf_content.strip() != ""
+            has_images = images and len(images) > 0
+            
+            if not has_pdf and not has_images:
+                # No PDF or image content, use standard prompt analysis
+                logger.info("No PDF or image content available, using standard prompt analysis")
                 return await self.openai_service.analyze_and_generate_prompts(user_prompt)
-            else:
-                # Use PDF-enhanced prompt generation
-                logger.info("Using PDF content for enhanced prompt generation")
+            elif has_pdf:
+                # Use PDF-enhanced prompt generation (images are passed through separately)
+                logger.info(f"Using PDF-enhanced prompt generation")
                 return await self.openai_service.analyze_pdf_content_and_generate_prompts(
                     user_prompt, 
                     pdf_content, 
                     category
                 )
+            else:
+                # Only images, no PDF - use standard prompt analysis
+                logger.info("Only images available, using standard prompt analysis")
+                return await self.openai_service.analyze_and_generate_prompts(user_prompt)
                 
         except Exception as e:
             logger.error(f"AI prompt generation failed: {e}")
@@ -184,6 +233,7 @@ class AIProcessor:
         self, 
         session_id: int, 
         pdf_results: Dict[str, Any], 
+        image_results: Dict[str, Any],
         ai_results: Dict[str, Any],
         user_prompt: str,
         category: Optional[models.VideoCategory]
@@ -193,7 +243,9 @@ class AIProcessor:
             db = next(get_db())
             
             # Determine session status
-            if pdf_results["status"] == "success" and ai_results.get("success", False):
+            if (pdf_results["status"] == "success" and 
+                image_results["status"] == "success" and 
+                ai_results.get("success", False)):
                 new_status = models.VideoSessionStatus.COMPLETED
             else:
                 new_status = models.VideoSessionStatus.FAILED
