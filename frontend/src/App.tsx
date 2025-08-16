@@ -7,6 +7,8 @@ import Index from "./pages/Index";
 import CreateVideo from "./pages/CreateVideo.tsx";
 import VideoWorkspace from "./pages/VideoWorkspace.tsx";
 import NotFound from "./pages/NotFound";
+// Only import testing pages in development environment
+import Testing from "./pages/Testing";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +22,9 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/create-video" element={<CreateVideo />} />
             <Route path="/workspace" element={<VideoWorkspace />} />
+            {import.meta.env.DEV && (
+              <Route path="/testing" element={<Testing />} />
+            )}
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

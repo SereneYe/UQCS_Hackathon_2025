@@ -3,14 +3,16 @@ import { useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from 'react-router-dom';
+import { useCreateUser } from '@/services/userService';
 
 const EmailForm = () => {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const createUserMutation = useCreateUser();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email.trim()) {
@@ -23,16 +25,36 @@ const EmailForm = () => {
 
     setIsSubmitting(true);
     
-    // Simulate submission and redirect to CreateVideo page
-    setTimeout(() => {
+    try {
+      await createUserMutation.mutateAsync({ email: email.trim() });
+      
+      // Success case
       toast({
-        title: "Success!",
-        description: "You've been added to the waitlist.",
+        title: "Welcome! Account created successfully.",
+        description: "Redirecting to create video...",
       });
       setEmail('');
-      setIsSubmitting(false);
       navigate('/create-video');
-    }, 1500);
+    } catch (error: any) {
+      // Handle different error cases
+      if (error?.response?.status === 400 && error?.response?.data?.detail === "Email already registered") {
+        // Email already exists - still allow navigation
+        toast({
+          title: "Welcome back! Redirecting to create video.",
+          description: "Your email is already registered.",
+        });
+        setEmail('');
+        navigate('/create-video');
+      } else {
+        // Other errors - show error and don't navigate
+        toast({
+          title: "Something went wrong. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
