@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from 'react';
 import { Share2, Download, Lock, Sparkles, ArrowLeft, ChevronDown } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
@@ -12,13 +11,33 @@ import type { PreparedFile } from '../types/upload';
 const SESSION_ID_KEY = 'currentSessionId';
 
 enum VideoCategory {
-  CONGRATULATION_VIDEO = 'congratulation_video',
-  EVENT_PROPAGATION_VIDEO = 'event_propagation_video',
+  CONGRATULATION_VIDEO = "congratulation_video",
+  EVENT_PROPAGATION_VIDEO = "event_propagation_video",
+  COMPANY_INTRODUCTION_VIDEO = "company_introduction_video", 
+  GENERAL_VIDEO = "general_video"
 }
 
 const categoryOptions: Array<{ id: VideoCategory; label: string; icon?: React.ReactNode }> = [
-  { id: VideoCategory.CONGRATULATION_VIDEO, label: 'Generate Congratulations Video', icon: <span className="text-lg">🎉</span> },
-  { id: VideoCategory.EVENT_PROPAGATION_VIDEO, label: 'Generate Event Propagation Video', icon: <span className="text-lg">📣</span> },
+  { 
+    id: VideoCategory.CONGRATULATION_VIDEO, 
+    label: 'Congratulations Video',
+    icon: <span className="text-lg">🎉</span> 
+  },
+  { 
+    id: VideoCategory.EVENT_PROPAGATION_VIDEO, 
+    label: 'Event Propagation Video',
+    icon: <span className="text-lg">📣</span> 
+  },
+  { 
+    id: VideoCategory.COMPANY_INTRODUCTION_VIDEO, 
+    label: 'Company Introduction Video',
+    icon: <span className="text-lg">🏢</span> 
+  },
+  { 
+    id: VideoCategory.GENERAL_VIDEO, 
+    label: 'General Video',
+    icon: <span className="text-lg">🎬</span> 
+  }
 ];
 
 const CreateVideo = () => {
