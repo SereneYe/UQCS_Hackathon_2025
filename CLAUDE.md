@@ -1,64 +1,41 @@
-# Claude Code Configuration
+# Project Overview
 
-This file configures Claude Code to help with PR reviews and code assistance for this React + FastAPI project.
+This is a full-stack application with React frontend and FastAPI backend.
 
-## Project Structure
-- **Frontend**: React with TypeScript, Vite, TailwindCSS, and shadcn/ui components
-- **Backend**: FastAPI with SQLAlchemy, Google Cloud TTS integration
+## Tech Stack
+- **Frontend**: React, TypeScript, Vite, TailwindCSS, shadcn/ui
+- **Backend**: FastAPI, SQLAlchemy, Python, Google Cloud TTS
 
-## Build and Test Commands
+## Build Commands
 
-### Frontend (React/TypeScript)
+Frontend:
 ```bash
-cd frontend
-npm install
-npm run build
-npm run lint
+cd frontend && npm run build && npm run lint
 ```
 
-### Backend (FastAPI/Python)
+Backend:
 ```bash
-cd backend
-pip install -r requirements.txt
-uvicorn app.main:app --reload
+cd backend && python -m uvicorn app.main:app --reload
 ```
 
-## Code Quality Rules
+## Testing Commands
 
-### General
-- Follow existing code patterns and conventions
-- Maintain TypeScript strict mode compliance
-- Ensure all imports are properly organized
-- No hardcoded secrets or credentials in code
-- Keep components focused and reusable
+Frontend:
+```bash
+cd frontend && npm run lint
+```
 
-### Frontend Specific
-- Use shadcn/ui components consistently
-- Follow React best practices (hooks, functional components)
-- Maintain proper TypeScript typing
-- Use TailwindCSS for styling
-- Implement proper error handling and loading states
+Backend:
+```bash
+cd backend && python -m pytest
+```
 
-### Backend Specific
-- Follow FastAPI conventions for route definitions
-- Use Pydantic models for request/response validation
-- Implement proper error handling with HTTP status codes
-- Maintain database models with SQLAlchemy
-- Secure API endpoints appropriately
+## Code Standards
 
-## PR Review Focus Areas
-- Security vulnerabilities and credential exposure
-- Performance optimizations
-- Code maintainability and readability
-- Proper error handling
-- Type safety (TypeScript/Pydantic)
-- Component reusability (React)
-- API design consistency (FastAPI)
-- Database query efficiency
-- Test coverage and quality
-
-## Dependencies
-- Keep dependencies up to date
-- Avoid unnecessary dependencies
-- Use peer dependencies appropriately for React components
-- Maintain Python package compatibility
+- Follow existing patterns and conventions
+- Use TypeScript for type safety
+- Implement proper error handling
+- No hardcoded credentials
+- Use shadcn/ui components for UI
+- Follow FastAPI best practices
+- Maintain SQLAlchemy model consistency
