@@ -13,7 +13,7 @@ import models
 from database import engine
 
 # Import all routers
-from app.routers import storage, users, videos, audio, video_processing
+from app.routers import storage, users, videos, audio, video_processing, content_generation
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -37,6 +37,7 @@ app.include_router(videos.router)
 app.include_router(audio.router)
 app.include_router(video_processing.router)
 app.include_router(storage.router)
+app.include_router(content_generation.router)
 
 # Core health endpoints
 @app.get("/")
