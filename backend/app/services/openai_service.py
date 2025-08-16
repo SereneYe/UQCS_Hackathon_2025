@@ -1,8 +1,28 @@
 import os
 import json
+import sys
 from typing import Dict, Any, Optional
 from openai import AsyncOpenAI
 from dotenv import load_dotenv
+
+# Add parent directories to path for imports
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+import models
+from app.prompts.content_analysis import (
+    CONTENT_ANALYSIS_SYSTEM_PROMPT,
+    VIDEO_PROMPT_REFINEMENT_SYSTEM_PROMPT,
+    AUDIO_PROMPT_REFINEMENT_SYSTEM_PROMPT
+)
+from app.prompts.pdf_analysis import (
+    get_pdf_analysis_system_prompt,
+    get_pdf_analysis_user_message
+)
+from app.prompts.video_categories import get_video_category_context
+from app.prompts.refinement import (
+    get_video_refinement_user_message,
+    get_audio_refinement_user_message
+)
 
 # Load environment variables
 load_dotenv()
@@ -68,30 +88,8 @@ class OpenAIService:
         """
         try:
             
-            # Construct the system prompt for dual prompt generation
-            system_prompt = """You are a professional creative content analyst and prompt engineer. Your task is to:
-
-1. Deeply understand the user's input content and intent
-2. Generate two specialized prompts:
-   - Video generation prompt: For AI video generation models **VEO3**, specifically describe visual scenes, actions, styles, etc.
-   - Audio generation prompt: For text-to-speech, should be natural and fluent narrative text
-
-Please return results in the following JSON format:
-{
-    "analysis": {
-        "main_theme": "Content theme",
-        "key_elements": ["Key element 1", "Key element 2"],
-        "style_preference": "Style preference",
-        "mood": "Emotional atmosphere"
-    },
-    "video_prompt": "Detailed video generation prompt, including scenes, actions, visual styles, etc.",
-    "audio_prompt": "Natural narrative text suitable for speech conversion"
-}
-
-Note:
-- Video prompts should specifically describe visual elements, avoid abstract concepts
-- Audio prompts should be complete sentences suitable for reading aloud
-- Both prompts should work together to form a complete content experience"""
+            # Use the imported system prompt for dual prompt generation
+            system_prompt = CONTENT_ANALYSIS_SYSTEM_PROMPT
 
             # Construct user message
             user_message = f"""User input: {user_input}"""
@@ -162,19 +160,8 @@ Note:
             Dictionary containing refined prompt
         """
         try:
-            system_prompt = """You are a video generation prompt expert. Based on user feedback, optimize and improve video generation prompts.
-            
-Requirements:
-1. Maintain the core content of the original prompt
-2. Make adjustments based on user feedback
-3. Ensure the prompt is specific, clear, and suitable for AI video generation
-4. Return the optimized prompt"""
-
-            user_message = f"""Original prompt: {original_prompt}
-
-User feedback: {user_feedback}
-
-Please provide the optimized video generation prompt."""
+            system_prompt = VIDEO_PROMPT_REFINEMENT_SYSTEM_PROMPT
+            user_message = get_video_refinement_user_message(original_prompt, user_feedback)
 
             client = self._get_client()
             response = await client.chat.completions.create(
@@ -219,19 +206,8 @@ Please provide the optimized video generation prompt."""
             Dictionary containing refined prompt
         """
         try:
-            system_prompt = """You are an audio generation text expert. Based on user feedback, optimize and improve audio generation text.
-            
-Requirements:
-1. Maintain the core content of the original text
-2. Make adjustments based on user feedback
-3. Ensure the text is natural and fluent, suitable for reading aloud
-4. Return the optimized audio text"""
-
-            user_message = f"""Original audio text: {original_prompt}
-
-User feedback: {user_feedback}
-
-Please provide the optimized audio generation text."""
+            system_prompt = AUDIO_PROMPT_REFINEMENT_SYSTEM_PROMPT
+            user_message = get_audio_refinement_user_message(original_prompt, user_feedback)
 
             client = self._get_client()
             response = await client.chat.completions.create(
@@ -258,6 +234,101 @@ Please provide the optimized audio generation text."""
                 "success": False,
                 "error": str(e),
                 "refined_prompt": original_prompt  # Return original if refinement fails
+            }
+    
+    def _get_video_category_context(self, category: Optional[models.VideoCategory]) -> str:
+        """Get context-specific information based on video category"""
+        return get_video_category_context(category)
+    
+    async def analyze_pdf_content_and_generate_prompts(
+        self,
+        user_prompt: str,
+        pdf_content: str,
+        category: Optional[models.VideoCategory] = None
+    ) -> Dict[str, Any]:
+        """
+        Analyze PDF content and user prompt to generate video and audio prompts
+        
+        Args:
+            user_prompt: User's specific instructions for the video
+            pdf_content: Combined text content from PDF files
+            category: Video category for context
+            
+        Returns:
+            Dictionary containing analysis results and generated prompts
+        """
+        try:
+            # Get category-specific context
+            category_context = self._get_video_category_context(category)
+            
+            # Use the imported system prompt for PDF-based prompt generation
+            system_prompt = get_pdf_analysis_system_prompt(category_context)
+
+            # Limit PDF content to avoid token limits
+            limited_pdf_content = pdf_content[:6000] if len(pdf_content) > 6000 else pdf_content
+            
+            # Use the imported user message formatter
+            user_message = get_pdf_analysis_user_message(user_prompt, limited_pdf_content)
+
+            # Call OpenAI API
+            client = self._get_client()
+            response = await client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_message}
+                ],
+                temperature=0.7,
+                max_tokens=2000
+            )
+            
+            # Parse the response
+            content = response.choices[0].message.content
+            
+            # Try to parse as JSON
+            try:
+                result = json.loads(content)
+                return {
+                    "success": True,
+                    "data": result,
+                    "raw_response": content,
+                    "category": category.value if category else "general",
+                    "pdf_processed": True,
+                    "usage": {
+                        "prompt_tokens": response.usage.prompt_tokens,
+                        "completion_tokens": response.usage.completion_tokens,
+                        "total_tokens": response.usage.total_tokens
+                    }
+                }
+            except json.JSONDecodeError:
+                # If JSON parsing fails, return structured fallback
+                return {
+                    "success": True,
+                    "data": {
+                        "analysis": {
+                            "main_theme": "Document-based content",
+                            "key_elements": ["PDF content analysis"],
+                            "important_details": ["Content extracted from uploaded documents"],
+                            "style_preference": "Professional",
+                            "mood": "Informative",
+                            "pdf_summary": "PDF content processed"
+                        },
+                        "video_prompt": content,
+                        "audio_prompt": content,
+                        "enhanced_user_prompt": user_prompt
+                    },
+                    "raw_response": content,
+                    "category": category.value if category else "general",
+                    "pdf_processed": True,
+                    "warning": "Response was not in expected JSON format"
+                }
+                
+        except Exception as e:
+            return {
+                "success": False,
+                "error": str(e),
+                "data": None,
+                "pdf_processed": False
             }
 
 # Create a global OpenAI service instance with lazy loading

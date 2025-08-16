@@ -176,16 +176,41 @@ async def start_session_processing(
         )
         updated_session = crud.update_video_session(db, session_id, update_data)
         
-        # Here you would typically trigger your video processing pipeline
-        # For now, we'll just update the status and fields
+        # Import and trigger AI processing pipeline
+        from app.services.ai_processor import ai_processor
         
-        return {
-            "message": "Video processing started",
-            "session_id": session_id,
-            "status": updated_session.status,
-            "user_prompt": updated_session.user_prompt,
-            "category": updated_session.category
-        }
+        # Start AI processing in background (in production, this would be async/celery task)
+        try:
+            ai_results = await ai_processor.process_video_session(
+                session_id=session_id,
+                user_prompt=user_prompt or updated_session.user_prompt,
+                category=video_category or updated_session.category
+            )
+            
+            return {
+                "message": "Video processing completed",
+                "session_id": session_id,
+                "status": updated_session.status,
+                "user_prompt": updated_session.user_prompt,
+                "category": updated_session.category,
+                "ai_processing": ai_results,
+                "pdf_files_processed": ai_results.get("pdf_processing", {}).get("pdf_files_processed", 0),
+                "prompts_generated": ai_results.get("prompts_generated", {})
+            }
+            
+        except Exception as ai_error:
+            # If AI processing fails, update session status to failed
+            failed_update = schemas.VideoSessionUpdate(status=models.VideoSessionStatus.FAILED)
+            crud.update_video_session(db, session_id, failed_update)
+            
+            return {
+                "message": "Video processing failed",
+                "session_id": session_id,
+                "status": "failed",
+                "error": str(ai_error),
+                "user_prompt": updated_session.user_prompt,
+                "category": updated_session.category
+            }
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to start processing: {str(e)}")
