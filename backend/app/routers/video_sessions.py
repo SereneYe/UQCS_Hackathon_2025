@@ -186,18 +186,85 @@ async def start_session_processing(
                 user_prompt=user_prompt or updated_session.user_prompt,
                 category=video_category or updated_session.category
             )
+            # Extract VEO3 inputs from AI results
+            veo3_inputs = extract_veo3_inputs(ai_results)
             
+            if not veo3_inputs["success"]:
+                # Update session status to failed if VEO3 input extraction fails
+                failed_update = schemas.VideoSessionUpdate(status=models.VideoSessionStatus.FAILED)
+                crud.update_video_session(db, session_id, failed_update)
+                
+                return {
+                    "message": "VEO3 input extraction failed",
+                    "session_id": session_id,
+                    "status": "failed",
+                    "error": veo3_inputs["error"],
+                    "ai_processing": ai_results
+                }
+            
+            # Import VEO3 service and generate video
+            # from app.services.veo3_service import veo3_service
+            #
+            # veo3_result = await veo3_service.generate_video_complete(
+            #     prompt=veo3_inputs["video_prompt"],
+            #     output_video_id=session_id,  # Use session_id as video_id
+            #     model="veo3-fast",
+            #     enhance_prompt=False,  # AI already enhanced the prompt
+            #     image_url=veo3_inputs["image_url"],
+            #     format="mp4"
+            # )
+            #
+            # print("VEO3 Result:", veo3_result)
+            #
+            # if veo3_result["success"]:
+            #     # Update session status to completed
+            #     success_update = schemas.VideoSessionUpdate(
+            #         status=models.VideoSessionStatus.COMPLETED,
+            #         output_video_path=veo3_result["output_path"]
+            #     )
+            #     updated_session = crud.update_video_session(db, session_id, success_update)
+            #
+            #     return {
+            #         "message": "Video processing completed successfully",
+            #         "session_id": session_id,
+            #         "status": "completed",
+            #         "user_prompt": updated_session.user_prompt,
+            #         "category": updated_session.category,
+            #         "ai_processing": ai_results,
+            #         "veo3_processing": veo3_result,
+            #         "output_video_path": veo3_result["output_path"],
+            #         "video_url": veo3_result.get("video_url"),
+            #         "task_id": veo3_result.get("task_id"),
+            #         "prompts_generated": ai_results.get("prompts_generated", {})
+            #     }
+            # else:
+            #     # Update session status to failed
+            #     failed_update = schemas.VideoSessionUpdate(status=models.VideoSessionStatus.FAILED)
+            #     crud.update_video_session(db, session_id, failed_update)
+            #
+            #     return {
+            #         "message": "VEO3 video generation failed",
+            #         "session_id": session_id,
+            #         "status": "failed",
+            #         "error": veo3_result.get("error"),
+            #         "ai_processing": ai_results,
+            #         "veo3_error": veo3_result
+            #     }
+
+            # Remove the following fake return when doing the testing
             return {
-                "message": "Video processing completed",
+                "message": "Video processing completed successfully",
                 "session_id": session_id,
-                "status": updated_session.status,
+                "status": "completed",
                 "user_prompt": updated_session.user_prompt,
                 "category": updated_session.category,
                 "ai_processing": ai_results,
-                "pdf_files_processed": ai_results.get("pdf_processing", {}).get("pdf_files_processed", 0),
+                "output_video_path": "/Users/sereneye/Downloads/Studying/Others/UQCS_Hackathon_2025/backend/temp/generated_video/8.mp4",
+                "video_url": "https://filesystem.site/cdn/20250816/RE33nHoQGQ6UlmNYmouXmQAy0kwZi8.mp4",
+                "task_id": "veo3-fast:1755347551-WBOLccEf3c",
                 "prompts_generated": ai_results.get("prompts_generated", {})
             }
-            
+
         except Exception as ai_error:
             # If AI processing fails, update session status to failed
             failed_update = schemas.VideoSessionUpdate(status=models.VideoSessionStatus.FAILED)
@@ -214,6 +281,95 @@ async def start_session_processing(
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to start processing: {str(e)}")
+
+# TODO: Please modify it in the future
+def extract_veo3_inputs(ai_results: dict) -> dict:
+    try:
+        # Check if ai_results is valid
+        if not ai_results or not isinstance(ai_results, dict):
+            return {
+                "success": False,
+                "error": "Invalid or missing AI results"
+            }
+        
+        # Extract video prompt - priority: prompts_generated.video_prompt -> ai_generation.data.video_prompt
+        video_prompt = None
+        
+        # First try prompts_generated.video_prompt
+        prompts_generated = ai_results.get("prompts_generated", {})
+        if isinstance(prompts_generated, dict):
+            video_prompt = prompts_generated.get("video_prompt")
+        
+        # Fallback to ai_generation.data.video_prompt
+        if not video_prompt:
+            ai_generation = ai_results.get("ai_generation", {})
+            if isinstance(ai_generation, dict) and ai_generation.get("data"):
+                video_prompt = ai_generation["data"].get("video_prompt")
+        
+        if not video_prompt:
+            return {
+                "success": False,
+                "error": "Video prompt not found in AI results"
+            }
+        
+        # Extract audio prompt
+        audio_prompt = None
+        if isinstance(prompts_generated, dict):
+            audio_prompt = prompts_generated.get("audio_prompt")
+        
+        # Fallback to ai_generation.data.audio_prompt
+        if not audio_prompt:
+            ai_generation = ai_results.get("ai_generation", {})
+            if isinstance(ai_generation, dict) and ai_generation.get("data"):
+                audio_prompt = ai_generation["data"].get("audio_prompt")
+        
+        # Extract enhanced user prompt
+        enhanced_user_prompt = None
+        if isinstance(prompts_generated, dict):
+            enhanced_user_prompt = prompts_generated.get("enhanced_user_prompt")
+        
+        # Extract analysis
+        analysis = None
+        ai_generation = ai_results.get("ai_generation", {})
+        if isinstance(ai_generation, dict) and ai_generation.get("data"):
+            analysis = ai_generation["data"].get("analysis")
+        
+        # Extract image information
+        image_url = None
+        has_image = False
+        
+        image_processing = ai_results.get("image_processing", {})
+        if isinstance(image_processing, dict):
+            has_image = image_processing.get("has_image", False)
+            
+            if has_image:
+                image_info = image_processing.get("image_info", {})
+                if isinstance(image_info, dict):
+                    # Use public_url if available
+                    if image_info.get("public_url"):
+                        image_url = image_info["public_url"]
+                    # Otherwise construct download URL using file_id
+                    elif image_info.get("file_id"):
+                        file_id = image_info["file_id"]
+                        image_url = f"/api/files/{file_id}/download"
+        
+        # Return extracted inputs
+        return {
+            "success": True,
+            "video_prompt": video_prompt,
+            "image_url": image_url,
+            "audio_prompt": audio_prompt,
+            "enhanced_user_prompt": enhanced_user_prompt,
+            "analysis": analysis,
+            "has_image": has_image
+        }
+        
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"Failed to extract VEO3 inputs: {str(e)}"
+        }
+
 
 @router.post("/{session_id}/complete")
 async def complete_session(
