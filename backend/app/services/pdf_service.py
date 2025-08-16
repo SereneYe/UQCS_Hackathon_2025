@@ -58,13 +58,12 @@ class PDFProcessor:
             logger.error(f"Failed to extract text from PDF: {e}")
             raise Exception(f"PDF processing failed: {str(e)}")
     
-    async def process_session_pdfs(self, session_id: int, storage_service) -> List[Dict[str, Any]]:
+    async def process_session_pdfs(self, session_id: int) -> List[Dict[str, Any]]:
         """
         Process all PDF files in a video session and extract their text content
         
         Args:
             session_id: Video session ID
-            storage_service: Storage service instance for downloading files
             
         Returns:
             List of dictionaries with file info and extracted text
@@ -84,8 +83,20 @@ class PDFProcessor:
                     try:
                         logger.info(f"Processing PDF file: {file.original_filename}")
                         
-                        # Download file content from storage
-                        file_content = await storage_service.download_file(file.gcs_filename)
+                        # Import storage service here to avoid circular imports
+                        from .storage_service import storage_service
+                        
+                        # Download file content from storage using signed URL and fetch
+                        signed_url = storage_service.generate_signed_download_url(file.gcs_filename, 30)
+                        
+                        # Download file content using the signed URL
+                        import aiohttp
+                        async with aiohttp.ClientSession() as session:
+                            async with session.get(signed_url) as response:
+                                if response.status == 200:
+                                    file_content = await response.read()
+                                else:
+                                    raise Exception(f"Failed to download file: HTTP {response.status}")
                         
                         # Extract text from PDF
                         extracted_text = self.extract_text_from_pdf_bytes(file_content)
