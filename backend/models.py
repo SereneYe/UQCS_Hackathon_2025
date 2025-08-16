@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text, Boolean, Enum
+from sqlalchemy import Column, Integer, String, DateTime, Text, Boolean, Enum, ForeignKey
 from sqlalchemy.sql import func
 from database import Base
 import enum
@@ -13,6 +13,18 @@ class AudioStatus(enum.Enum):
     PROCESSING = "processing"
     COMPLETED = "completed"
     FAILED = "failed"
+
+class FileCategory(enum.Enum):
+    AUDIO = "audio"
+    VIDEO = "video"
+    IMAGE = "image"
+    OTHER = "other"
+
+class FileStatus(enum.Enum):
+    UPLOADING = "uploading"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    DELETED = "deleted"
 
 class User(Base):
     __tablename__ = "users"
@@ -45,5 +57,27 @@ class Audio(Base):
     file_path = Column(String, nullable=True)
     file_size = Column(Integer, nullable=True)
     duration = Column(Integer, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+class File(Base):
+    __tablename__ = "files"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_email = Column(String, index=True)  # User who uploaded the file
+    original_filename = Column(String, nullable=False)
+    gcs_filename = Column(String, nullable=False, unique=True)  # Unique filename in GCS
+    bucket_name = Column(String, nullable=False)
+    file_size = Column(Integer, nullable=False)
+    content_type = Column(String, nullable=False)
+    category = Column(Enum(FileCategory), nullable=False)
+    status = Column(Enum(FileStatus), index=True, default=FileStatus.UPLOADING)
+    public_url = Column(String, nullable=True)
+    gcs_path = Column(String, nullable=False)  # Full GCS path
+    md5_hash = Column(String, nullable=True)
+    description = Column(Text, nullable=True)
+    tags = Column(String, nullable=True)  # JSON string of tags
+    is_public = Column(Boolean, default=False)
+    download_count = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
-from typing import Optional
-from models import VideoStatus, AudioStatus
+from typing import Optional, List
+from models import VideoStatus, AudioStatus, FileCategory, FileStatus
 
 # User Schemas
 class UserBase(BaseModel):
@@ -67,3 +67,64 @@ class Audio(AudioBase):
 
     class Config:
         from_attributes = True
+
+# File Schemas
+class FileBase(BaseModel):
+    original_filename: str
+    description: Optional[str] = None
+    tags: Optional[str] = None
+    is_public: bool = False
+
+class FileCreate(FileBase):
+    user_email: Optional[str] = None
+
+class FileUpdate(BaseModel):
+    description: Optional[str] = None
+    tags: Optional[str] = None
+    is_public: Optional[bool] = None
+    status: Optional[FileStatus] = None
+
+class FileUploadResponse(BaseModel):
+    id: int
+    original_filename: str
+    gcs_filename: str
+    file_size: int
+    content_type: str
+    category: FileCategory
+    status: FileStatus
+    public_url: Optional[str] = None
+    upload_url: Optional[str] = None
+    message: str
+
+class FileDownloadResponse(BaseModel):
+    id: int
+    original_filename: str
+    download_url: str
+    expires_at: Optional[datetime] = None
+    file_size: int
+    content_type: str
+
+class File(FileBase):
+    id: int
+    user_email: Optional[str] = None
+    gcs_filename: str
+    bucket_name: str
+    file_size: int
+    content_type: str
+    category: FileCategory
+    status: FileStatus
+    public_url: Optional[str] = None
+    gcs_path: str
+    md5_hash: Optional[str] = None
+    download_count: int = 0
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+class FileList(BaseModel):
+    files: List[File]
+    total: int
+    page: int
+    per_page: int

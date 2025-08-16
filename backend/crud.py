@@ -83,3 +83,69 @@ def update_audio(db: Session, audio_id: int, audio_update: schemas.AudioUpdate) 
         db.commit()
         db.refresh(db_audio)
     return db_audio
+
+# File CRUD Operations
+def create_file(db: Session, file_data: dict) -> models.File:
+    """Create a new file record"""
+    db_file = models.File(**file_data)
+    db.add(db_file)
+    db.commit()
+    db.refresh(db_file)
+    return db_file
+
+def get_file(db: Session, file_id: int) -> Optional[models.File]:
+    """Get file by ID"""
+    return db.query(models.File).filter(models.File.id == file_id).first()
+
+def get_file_by_gcs_filename(db: Session, gcs_filename: str) -> Optional[models.File]:
+    """Get file by GCS filename"""
+    return db.query(models.File).filter(models.File.gcs_filename == gcs_filename).first()
+
+def get_files(db: Session, skip: int = 0, limit: int = 100) -> List[models.File]:
+    """Get all files with pagination"""
+    return db.query(models.File).offset(skip).limit(limit).all()
+
+def get_files_by_user(db: Session, user_email: str, skip: int = 0, limit: int = 100) -> List[models.File]:
+    """Get files by user email"""
+    return db.query(models.File).filter(models.File.user_email == user_email).offset(skip).limit(limit).all()
+
+def get_files_by_category(db: Session, category: models.FileCategory, skip: int = 0, limit: int = 100) -> List[models.File]:
+    """Get files by category"""
+    return db.query(models.File).filter(models.File.category == category).offset(skip).limit(limit).all()
+
+def update_file(db: Session, file_id: int, file_update: schemas.FileUpdate) -> Optional[models.File]:
+    """Update file record"""
+    db_file = db.query(models.File).filter(models.File.id == file_id).first()
+    if db_file:
+        update_data = file_update.dict(exclude_unset=True)
+        for field, value in update_data.items():
+            setattr(db_file, field, value)
+        db.commit()
+        db.refresh(db_file)
+    return db_file
+
+def update_file_download_count(db: Session, file_id: int) -> Optional[models.File]:
+    """Increment file download count"""
+    db_file = db.query(models.File).filter(models.File.id == file_id).first()
+    if db_file:
+        db_file.download_count += 1
+        db.commit()
+        db.refresh(db_file)
+    return db_file
+
+def delete_file(db: Session, file_id: int) -> bool:
+    """Delete file record"""
+    db_file = db.query(models.File).filter(models.File.id == file_id).first()
+    if db_file:
+        db.delete(db_file)
+        db.commit()
+        return True
+    return False
+
+def get_files_count(db: Session) -> int:
+    """Get total count of files"""
+    return db.query(models.File).count()
+
+def get_files_count_by_user(db: Session, user_email: str) -> int:
+    """Get count of files by user"""
+    return db.query(models.File).filter(models.File.user_email == user_email).count()

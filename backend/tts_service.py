@@ -9,6 +9,7 @@ import crud
 import schemas
 from models import AudioStatus
 from config import get_audio_file_path
+from app.services.storage_service import storage_service
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -159,15 +160,35 @@ class TTSService:
             # Generate file path using config helper
             file_path = get_audio_file_path(audio_record.id, audio_create.audio_format)
             
-            # Save audio file
+            # Save audio file locally first
             file_size = self.save_audio_file(audio_content, file_path)
             
-            # Update record with file info and completed status
-            update_data = schemas.AudioUpdate(
-                status=AudioStatus.COMPLETED,
-                file_path=file_path,
-                file_size=file_size
-            )
+            try:
+                # Upload to GCS for backup/sharing
+                gcs_info = await storage_service.upload_file(
+                    audio_content,
+                    f"audio_{audio_record.id}.{audio_create.audio_format.lower()}",
+                    audio_create.user_email
+                )
+                
+                # Update record with both local and GCS paths
+                update_data = schemas.AudioUpdate(
+                    status=AudioStatus.COMPLETED,
+                    file_path=file_path,  # Keep local path for backwards compatibility
+                    file_size=file_size
+                )
+                
+                # Optionally store GCS info in a separate field or use GCS as primary storage
+                # For now, we'll keep the local file path as primary
+                
+            except Exception as gcs_error:
+                # If GCS upload fails, still complete with local file
+                print(f"GCS upload failed, using local storage: {gcs_error}")
+                update_data = schemas.AudioUpdate(
+                    status=AudioStatus.COMPLETED,
+                    file_path=file_path,
+                    file_size=file_size
+                )
             
             return crud.update_audio(db, audio_record.id, update_data)
             
