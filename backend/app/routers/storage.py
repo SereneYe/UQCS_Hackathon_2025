@@ -5,12 +5,16 @@ from app.services.storage_service import storage_service
 
 router = APIRouter(prefix="/storage", tags=["storage"])
 
-class UploadItem(BaseModel):
-    fileName: str = Field(..., description="Original file name")
-    size: int = Field(..., gt=0, description="File size in bytes")
-    contentType: Optional[str] = Field(None, description="MIME type")
+class UploadFileItem(BaseModel):
+    fileName: str = Field(..., description="Original file name from client")
+    size: int = Field(..., ge=0, description="File size in bytes")
+    contentType: Optional[str] = Field(default="application/octet-stream")
 
-class SignedUrlItem(BaseModel):
+class GetUploadUrlsRequest(BaseModel):
+    userId: int = Field(..., ge=1, description="Current user id")
+    files: List[UploadFileItem]
+
+class SignedUrlResponseItem(BaseModel):
     fileName: str
     gcsFileName: str
     url: str
@@ -19,37 +23,32 @@ class SignedUrlItem(BaseModel):
     expiresAt: str
     bucket: str
 
-class SignedUrlBatchResponse(BaseModel):
-    urls: List[SignedUrlItem]
+class GetUploadUrlsResponse(BaseModel):
+    urls: List[SignedUrlResponseItem]
 
-@router.post("/upload-urls", response_model=SignedUrlBatchResponse)
-async def create_signed_upload_urls(items: List[UploadItem]):
-    if not items:
-        raise HTTPException(status_code=400, detail="No files provided")
+@router.post("/upload-urls", response_model=GetUploadUrlsResponse)
+def get_signed_upload_urls(payload: GetUploadUrlsRequest):
     try:
-        user_id = 1
-
-        results = []
-        for it in items:
+        urls: List[SignedUrlResponseItem] = []
+        for f in payload.files:
+            # 生成签名URL并把 user_id 传进去
             signed = storage_service.generate_signed_upload_url(
-                original_filename=it.fileName,
-                file_size=it.size,
-                content_type=it.contentType or "application/octet-stream",
-                user_id=user_id,
-                expires_minutes=10,
+                original_filename=f.fileName,
+                file_size=f.size,
+                content_type=f.contentType or "application/octet-stream",
+                user_id=payload.userId,
             )
-            results.append(
-                SignedUrlItem(
-                    fileName=it.fileName,
-                    gcsFileName=signed["gcs_filename"],
-                    url=signed["url"],
-                    method="PUT",
-                    headers=signed["headers"],
-                    expiresAt=signed["expiresAt"],
-                    bucket=signed["bucket_name"],
-                )
-            )
-        return SignedUrlBatchResponse(urls=results)
+            # 将后端字段名映射为前端期望的命名
+            urls.append(SignedUrlResponseItem(
+                fileName=signed["original_filename"],
+                gcsFileName=signed["gcs_filename"],
+                url=signed["url"],
+                method=signed["method"],
+                headers=signed["headers"],
+                expiresAt=signed["expiresAt"],
+                bucket=signed["bucket_name"],
+            ))
+        return GetUploadUrlsResponse(urls=urls)
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
