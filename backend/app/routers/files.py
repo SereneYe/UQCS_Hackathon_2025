@@ -59,7 +59,8 @@ async def upload_file(
             "gcs_path": gcs_info["gcs_filename"],
             "description": description,
             "tags": tags,
-            "is_public": is_public
+            "is_public": is_public,
+            "video_session_id": video_session_id
         }
         
         db_file = crud.create_file(db, file_data)

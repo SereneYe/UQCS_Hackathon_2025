@@ -4,7 +4,7 @@ import PDFThumbnail from "./PDFThumbnail";
 
 interface Props {
   item: PreparedFile;
-  onRemove: (id: string) => void;
+  onRemove: (id: string) => void | Promise<void>;
 }
 
 export default function FileItemCard({ item, onRemove }: Props) {
@@ -50,7 +50,7 @@ export default function FileItemCard({ item, onRemove }: Props) {
       <button
         type="button"
         aria-label="Delete"
-        onClick={() => onRemove(item.id)}
+        onClick={() => void onRemove(item.id)}
         className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white text-xs px-2 py-1 rounded"
       >
         Delete
