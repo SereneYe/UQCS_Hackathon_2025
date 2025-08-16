@@ -1,47 +1,96 @@
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Share2, Download, Lock, Sparkles, ArrowLeft } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from 'react-router-dom';
+import { apiClient } from '@/services/api';
 import FileUploader from '../components/uploader/FileUploader';
 import type { PreparedFile } from '../types/upload';
 
-const videoCategories = [
-  { id: 'rpg', name: 'RPG Adventure', icon: <span className="text-lg">🗡️</span> },
-  { id: 'strategy', name: 'Strategy', icon: <span className="text-lg">🎯</span> },
-  { id: 'puzzle', name: 'Puzzle video', icon: <span className="text-lg">🧩</span> },
-  { id: 'open-world', name: 'Open World', icon: <span className="text-lg">🌎</span> },
-  { id: 'action', name: 'Action', icon: <span className="text-lg">⚡</span> },
+// Session ID localStorage key (matches existing project pattern)
+const SESSION_ID_KEY = 'currentSessionId';
+
+enum VideoCategory {
+  CONGRATULATION_VIDEO = 'congratulation_video',
+  EVENT_PROPAGATION_VIDEO = 'event_propagation_video',
+}
+
+const categoryOptions: Array<{ id: VideoCategory; label: string; icon?: React.ReactNode }> = [
+  { id: VideoCategory.CONGRATULATION_VIDEO, label: 'Generate Congratulations Video', icon: <span className="text-lg">🎉</span> },
+  { id: VideoCategory.EVENT_PROPAGATION_VIDEO, label: 'Generate Event Propagation Video', icon: <span className="text-lg">📣</span> },
 ];
 
 const CreateVideo = () => {
   const [videoIdea, setVideoIdea] = useState('');
   const [isCreating, setIsCreating] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<VideoCategory>(VideoCategory.CONGRATULATION_VIDEO);
   const [uploadedFiles, setUploadedFiles] = useState<PreparedFile[]>([]);
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  const canCreate = useMemo(() => {
+    return !!videoIdea.trim() && !!selectedCategory && !isCreating;
+  }, [videoIdea, selectedCategory, isCreating]);
+
+  const startVideoSession = async () => {
+    const sessionId = window.localStorage.getItem(SESSION_ID_KEY);
+    if (!sessionId) {
+      toast({
+        title: 'Session ID Missing',
+        description: 'No session ID found. Please create or restore a session first.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      setIsCreating(true);
+
+      const formData = new FormData();
+      formData.append('user_prompt', videoIdea.trim());
+      formData.append('category', selectedCategory);
+
+      // Use apiClient.request directly to send FormData
+      await apiClient.request(`/video-sessions/${encodeURIComponent(sessionId)}/start-processing`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+        },
+      });
+
+      toast({
+        title: 'Success',
+        description: 'Video session processing has started.',
+        duration: 3000, // Auto-dismiss after 3 seconds
+      });
+
+      // Optional: navigate to workspace or stay on current page
+      // navigate('/workspace');
+
+    } catch (err: unknown) {
+      const message =
+        (err instanceof Error ? err.message : null) ||
+        'Request failed, please try again later.';
+      toast({
+        title: 'Start Failed',
+        description: message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   const handleCreate = () => {
     if (!videoIdea.trim()) {
       toast({
-        title: "Please describe your video idea",
+        title: "Please enter your video idea",
         variant: "destructive",
       });
       return;
     }
-    
-    setIsCreating(true);
-    
-    // Simulate creation and redirect to workspace
-    setTimeout(() => {
-      toast({
-        title: "Success!",
-        description: "Your video is being generated.",
-      });
-      setIsCreating(false);
-      navigate('/workspace');
-    }, 1500);
+    // Trigger the actual backend request
+    startVideoSession();
   };
 
   const goBack = () => {
@@ -64,7 +113,7 @@ const CreateVideo = () => {
         <div className="w-full flex justify-center mb-6">
           <div className="w-24 h-24 rounded-full bg-arcade-terminal flex items-center justify-center relative">
             <div className="absolute inset-0 rounded-full bg-arcade-purple opacity-20 blur-xl"></div>
-            <div className="text-3xl">🎮</div>
+            <div className="text-3xl">🎬</div>
           </div>
         </div>
         
@@ -100,11 +149,11 @@ const CreateVideo = () => {
               
               <button 
                 onClick={handleCreate}
-                disabled={isCreating}
+                disabled={!canCreate}
                 className="bg-arcade-purple hover:bg-opacity-90 text-white rounded-lg px-6 py-2 flex items-center font-medium disabled:opacity-70"
               >
                 <Sparkles size={18} className="mr-2" />
-                Create
+                {isCreating ? 'Starting...' : 'Create'}
               </button>
             </div>
           </div>
@@ -123,20 +172,20 @@ const CreateVideo = () => {
           />
         </div>
         
-        {/* video categories */}
+        {/* Video categories - strictly limited to backend enums */}
         <div className="flex flex-wrap justify-center gap-3 max-w-4xl mx-auto">
-          {videoCategories.map((category) => (
+          {categoryOptions.map((opt) => (
             <button
-              key={category.id}
-              onClick={() => setSelectedCategory(category.id)}
+              key={opt.id}
+              onClick={() => setSelectedCategory(opt.id)}
               className={`flex items-center space-x-2 px-4 py-2 rounded-full border ${
-                selectedCategory === category.id 
-                  ? 'bg-arcade-purple/20 border-arcade-purple text-white' 
+                selectedCategory === opt.id
+                  ? 'bg-arcade-purple/20 border-arcade-purple text-white'
                   : 'bg-arcade-terminal/40 border-gray-700 text-gray-300 hover:bg-arcade-terminal/60'
               }`}
             >
-              <span>{category.icon}</span>
-              <span>{category.name}</span>
+              {opt.icon ? <span>{opt.icon}</span> : null}
+              <span>{opt.label}</span>
             </button>
           ))}
         </div>
