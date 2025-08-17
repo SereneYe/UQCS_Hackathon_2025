@@ -27,7 +27,6 @@ async def upload_file(
     video_session_id: Optional[int] = Form(None),
     description: Optional[str] = Form(None),
     tags: Optional[str] = Form(None),
-    is_public: bool = Form(False),
     db: Session = Depends(get_db)
 ):
     """
@@ -55,11 +54,10 @@ async def upload_file(
             "content_type": gcs_info["content_type"],
             "category": models.FileCategory(gcs_info["category"]),
             "status": models.FileStatus.COMPLETED,
-            "public_url": gcs_info["public_url"] if is_public else None,
+            "public_url": gcs_info["public_url"],
             "gcs_path": gcs_info["gcs_filename"],
             "description": description,
             "tags": tags,
-            "is_public": is_public,
             "video_session_id": video_session_id
         }
         
@@ -122,8 +120,8 @@ async def upload_multiple_files(
                 "content_type": gcs_info["content_type"],
                 "category": models.FileCategory(gcs_info["category"]),
                 "status": models.FileStatus.COMPLETED,
-                "gcs_path": gcs_info["gcs_filename"],
-                "is_public": False
+                "public_url": gcs_info["public_url"],
+                "gcs_path": gcs_info["gcs_filename"]
             }
             
             db_file = crud.create_file(db, file_data)

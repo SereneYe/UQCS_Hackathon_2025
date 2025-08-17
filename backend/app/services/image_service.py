@@ -102,28 +102,12 @@ class ImageProcessor:
             
             logger.info(f"Processing image file: {image_file.original_filename}")
             
-            # Generate signed download URL
-            download_url = None
-            if image_file.gcs_filename:
-                try:
-                    download_url = storage_service.generate_signed_download_url(
-                        image_file.gcs_filename, 
-                        expiration_minutes
-                    )
-                    logger.info(f"Generated signed URL for image file: {image_file.original_filename}")
-                except Exception as e:
-                    logger.error(f"Failed to generate signed URL for image: {e}")
-                    download_url = image_file.public_url  # Fallback to static URL
-            else:
-                download_url = image_file.public_url  # Fallback to static URL
-            
             image_info = {
                 "file_id": image_file.id,
                 "filename": image_file.original_filename,
                 "content_type": image_file.content_type,
                 "file_size": image_file.file_size,
-                "public_url": download_url,
-                "download_url": download_url,
+                "public_url": image_file.public_url,
                 "gcs_filename": image_file.gcs_filename,
                 "created_at": image_file.created_at.isoformat() if image_file.created_at else None
             }
@@ -131,8 +115,7 @@ class ImageProcessor:
             return {
                 "status": "success",
                 "has_image": True,
-                "image_url": download_url,  # Use signed URL as the main image URL
-                "download_url": download_url,
+                "image_url": image_file.public_url,  # Use signed URL as the main image URL
                 "image_info": image_info
             }
             

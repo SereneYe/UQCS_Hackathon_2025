@@ -202,6 +202,7 @@ async def start_session_processing(
                     "ai_processing": ai_results
                 }
 
+
 #             from app.services.veo3_service import veo3_service
 #             veo3_processing_result = await veo3_service.generate_video_complete(
 #                 prompt=veo3_inputs["video_prompt"],
@@ -248,6 +249,8 @@ async def start_session_processing(
 #                 "veo3_inputs": veo3_inputs
 #             }
 
+
+            
             return {
             "message": "Video processing completed successfully",
                 "session_id": 1,

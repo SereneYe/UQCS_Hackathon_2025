@@ -341,7 +341,7 @@ class VEO3Service:
         output_video_id: int,
         model: str = "veo3-fast",
         enhance_prompt: bool = True,
-        images: Optional[str] = None,
+        images: Optional[list] = None,
         format: str = "mp4"
     ) -> Dict[str, Any]:
         """
