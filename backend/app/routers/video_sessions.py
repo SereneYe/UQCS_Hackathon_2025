@@ -201,68 +201,51 @@ async def start_session_processing(
                     "error": veo3_inputs["error"],
                     "ai_processing": ai_results
                 }
-            
-            # Import VEO3 service and generate video
-            # from app.services.veo3_service import veo3_service
-            #
-            # veo3_result = await veo3_service.generate_video_complete(
-            #     prompt=veo3_inputs["video_prompt"],
-            #     output_video_id=session_id,  # Use session_id as video_id
-            #     model="veo3-fast",
-            #     enhance_prompt=False,  # AI already enhanced the prompt
-            #     image_url=veo3_inputs["image_url"],
-            #     format="mp4"
-            # )
-            #
-            # print("VEO3 Result:", veo3_result)
-            #
-            # if veo3_result["success"]:
-            #     # Update session status to completed
-            #     success_update = schemas.VideoSessionUpdate(
-            #         status=models.VideoSessionStatus.COMPLETED,
-            #         output_video_path=veo3_result["output_path"]
-            #     )
-            #     updated_session = crud.update_video_session(db, session_id, success_update)
-            #
-            #     return {
-            #         "message": "Video processing completed successfully",
-            #         "session_id": session_id,
-            #         "status": "completed",
-            #         "user_prompt": updated_session.user_prompt,
-            #         "category": updated_session.category,
-            #         "ai_processing": ai_results,
-            #         "veo3_processing": veo3_result,
-            #         "output_video_path": veo3_result["output_path"],
-            #         "video_url": veo3_result.get("video_url"),
-            #         "task_id": veo3_result.get("task_id"),
-            #         "prompts_generated": ai_results.get("prompts_generated", {})
-            #     }
-            # else:
-            #     # Update session status to failed
-            #     failed_update = schemas.VideoSessionUpdate(status=models.VideoSessionStatus.FAILED)
-            #     crud.update_video_session(db, session_id, failed_update)
-            #
-            #     return {
-            #         "message": "VEO3 video generation failed",
-            #         "session_id": session_id,
-            #         "status": "failed",
-            #         "error": veo3_result.get("error"),
-            #         "ai_processing": ai_results,
-            #         "veo3_error": veo3_result
-            #     }
 
-            # Remove the following fake return when doing the testing
+            from app.services.veo3_service import veo3_service
+            veo3_processing_result = await veo3_service.generate_video_complete(
+                prompt=veo3_inputs["video_prompt"],
+                output_video_id=session_id,
+                images=veo3_inputs["images"]
+            )
+            
+            print('veo3_processing_result', veo3_processing_result)
+            
+            if not veo3_processing_result["success"]:
+                # Update session status to failed if video generation fails
+                failed_update = schemas.VideoSessionUpdate(status=models.VideoSessionStatus.FAILED)
+                crud.update_video_session(db, session_id, failed_update)
+                
+                return {
+                    "message": "Video generation failed",
+                    "session_id": session_id,
+                    "status": "failed",
+                    "error": veo3_processing_result["error"],
+                    "ai_processing": ai_results,
+                    "veo3_inputs": veo3_inputs
+                }
+            
+            # Update session status to completed and save output paths
+            completed_update = schemas.VideoSessionUpdate(
+                status=models.VideoSessionStatus.COMPLETED,
+                output_video_path=veo3_processing_result["output_path"],
+                video_url=veo3_processing_result["video_url"]
+            )
+            final_session = crud.update_video_session(db, session_id, completed_update)
+            
             return {
                 "message": "Video processing completed successfully",
                 "session_id": session_id,
                 "status": "completed",
-                "user_prompt": updated_session.user_prompt,
-                "category": updated_session.category,
+                "user_prompt": final_session.user_prompt,
+                "category": final_session.category,
                 "ai_processing": ai_results,
-                "output_video_path": "/Users/sereneye/Downloads/Studying/Others/UQCS_Hackathon_2025/backend/temp/generated_video/8.mp4",
-                "video_url": "https://filesystem.site/cdn/20250816/RE33nHoQGQ6UlmNYmouXmQAy0kwZi8.mp4",
-                "task_id": "veo3-fast:1755347551-WBOLccEf3c",
-                "prompts_generated": ai_results.get("prompts_generated", {})
+                "output_video_path": veo3_processing_result["output_path"],
+                "video_url": veo3_processing_result["video_url"],
+                "task_id": veo3_processing_result["task_id"],
+                "file_size": veo3_processing_result["file_size"],
+                "elapsed_seconds": veo3_processing_result.get("elapsed_seconds", 0),
+                "veo3_inputs": veo3_inputs
             }
 
         except Exception as ai_error:
@@ -284,6 +267,7 @@ async def start_session_processing(
 
 # TODO: Please modify it in the future
 def extract_veo3_inputs(ai_results: dict) -> dict:
+    # print('extract_veo3_inputs', ai_results)
     try:
         # Check if ai_results is valid
         if not ai_results or not isinstance(ai_results, dict):
@@ -296,15 +280,9 @@ def extract_veo3_inputs(ai_results: dict) -> dict:
         video_prompt = None
         
         # First try prompts_generated.video_prompt
-        prompts_generated = ai_results.get("prompts_generated", {})
+        prompts_generated = ai_results.get("prompts", {})
         if isinstance(prompts_generated, dict):
             video_prompt = prompts_generated.get("video_prompt")
-        
-        # Fallback to ai_generation.data.video_prompt
-        if not video_prompt:
-            ai_generation = ai_results.get("ai_generation", {})
-            if isinstance(ai_generation, dict) and ai_generation.get("data"):
-                video_prompt = ai_generation["data"].get("video_prompt")
         
         if not video_prompt:
             return {
@@ -317,51 +295,15 @@ def extract_veo3_inputs(ai_results: dict) -> dict:
         if isinstance(prompts_generated, dict):
             audio_prompt = prompts_generated.get("audio_prompt")
         
-        # Fallback to ai_generation.data.audio_prompt
-        if not audio_prompt:
-            ai_generation = ai_results.get("ai_generation", {})
-            if isinstance(ai_generation, dict) and ai_generation.get("data"):
-                audio_prompt = ai_generation["data"].get("audio_prompt")
-        
-        # Extract enhanced user prompt
-        enhanced_user_prompt = None
-        if isinstance(prompts_generated, dict):
-            enhanced_user_prompt = prompts_generated.get("enhanced_user_prompt")
-        
-        # Extract analysis
-        analysis = None
-        ai_generation = ai_results.get("ai_generation", {})
-        if isinstance(ai_generation, dict) and ai_generation.get("data"):
-            analysis = ai_generation["data"].get("analysis")
-        
         # Extract image information
-        image_url = None
-        has_image = False
-        
-        image_processing = ai_results.get("image_processing", {})
-        if isinstance(image_processing, dict):
-            has_image = image_processing.get("has_image", False)
-            
-            if has_image:
-                image_info = image_processing.get("image_info", {})
-                if isinstance(image_info, dict):
-                    # Use public_url if available
-                    if image_info.get("public_url"):
-                        image_url = image_info["public_url"]
-                    # Otherwise construct download URL using file_id
-                    elif image_info.get("file_id"):
-                        file_id = image_info["file_id"]
-                        image_url = f"/api/files/{file_id}/download"
+        images = ai_results.get("images", [])
         
         # Return extracted inputs
         return {
             "success": True,
             "video_prompt": video_prompt,
-            "image_url": image_url,
+            "images": images,
             "audio_prompt": audio_prompt,
-            "enhanced_user_prompt": enhanced_user_prompt,
-            "analysis": analysis,
-            "has_image": has_image
         }
         
     except Exception as e:

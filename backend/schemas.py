@@ -152,6 +152,7 @@ class VideoSessionUpdate(BaseModel):
     total_files: Optional[int] = None
     processed_files: Optional[int] = None
     output_video_path: Optional[str] = None
+    video_url: Optional[str] = None
 
 class VideoSession(VideoSessionBase):
     id: int
@@ -159,6 +160,7 @@ class VideoSession(VideoSessionBase):
     total_files: int = 0
     processed_files: int = 0
     output_video_path: Optional[str] = None
+    video_url: Optional[str] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
 
