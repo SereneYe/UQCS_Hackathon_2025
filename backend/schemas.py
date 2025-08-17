@@ -73,7 +73,6 @@ class FileBase(BaseModel):
     original_filename: str
     description: Optional[str] = None
     tags: Optional[str] = None
-    is_public: bool = False
 
 class FileCreate(FileBase):
     user_email: Optional[str] = None
@@ -82,7 +81,6 @@ class FileCreate(FileBase):
 class FileUpdate(BaseModel):
     description: Optional[str] = None
     tags: Optional[str] = None
-    is_public: Optional[bool] = None
     status: Optional[FileStatus] = None
     video_session_id: Optional[int] = None
 

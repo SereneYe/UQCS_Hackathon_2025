@@ -108,7 +108,6 @@ class File(Base):
     md5_hash = Column(String, nullable=True)
     description = Column(Text, nullable=True)
     tags = Column(String, nullable=True)  # JSON string of tags
-    is_public = Column(Boolean, default=False)
     download_count = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
