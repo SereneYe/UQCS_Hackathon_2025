@@ -21,7 +21,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/create-video" element={<CreateVideo />} />
-            <Route path="/workspace" element={<VideoWorkspace />} />
+            <Route path="/workspace/:slug" element={<VideoWorkspace />} />
             {import.meta.env.DEV && (
               <Route path="/testing" element={<Testing />} />
             )}
