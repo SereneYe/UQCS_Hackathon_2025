@@ -28,7 +28,8 @@ OPENAI_TEMPERATURE = float(os.getenv("OPENAI_TEMPERATURE", "0.7"))
 # VEO3 Configuration
 VEO3_API_KEY = os.getenv("VEO3_API_KEY")
 VEO3_BASE_URL = os.getenv("VEO3_BASE_URL", "https://api.qingyuntop.top")
-VEO3_MODEL = os.getenv("VEO3_MODEL", "veo3-fast")
+VEO3_MODEL = os.getenv("VEO3_MODEL", "veo3-fast-frames")
+VEO3_MODEL_FRAMES = os.getenv("VEO3_MODEL_FRAMES", "veo3-fast-frames")
 VEO3_POLL_INTERVAL = int(os.getenv("VEO3_POLL_INTERVAL", "5"))
 VEO3_MAX_WAIT_TIME = int(os.getenv("VEO3_MAX_WAIT_TIME", "900"))  # 15 minutes
 

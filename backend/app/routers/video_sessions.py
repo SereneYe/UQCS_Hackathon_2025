@@ -203,93 +203,93 @@ async def start_session_processing(
                 }
 
 
-#             from app.services.veo3_service import veo3_service
-#             veo3_processing_result = await veo3_service.generate_video_complete(
-#                 prompt=veo3_inputs["video_prompt"],
-#                 output_video_id=session_id,
-#                 images=veo3_inputs["images"]
-#             )
-#
-#             print('veo3_processing_result', veo3_processing_result)
-#
-#             if not veo3_processing_result["success"]:
-#                 # Update session status to failed if video generation fails
-#                 failed_update = schemas.VideoSessionUpdate(status=models.VideoSessionStatus.FAILED)
-#                 crud.update_video_session(db, session_id, failed_update)
-#
-#                 return {
-#                     "message": "Video generation failed",
-#                     "session_id": session_id,
-#                     "status": "failed",
-#                     "error": veo3_processing_result["error"],
-#                     "ai_processing": ai_results,
-#                     "veo3_inputs": veo3_inputs
-#                 }
-#
-#             # Update session status to completed and save output paths
-#             completed_update = schemas.VideoSessionUpdate(
-#                 status=models.VideoSessionStatus.COMPLETED,
-#                 output_video_path=veo3_processing_result["output_path"],
-#                 video_url=veo3_processing_result["video_url"]
-#             )
-#             final_session = crud.update_video_session(db, session_id, completed_update)
-#
-#             return {
-#                 "message": "Video processing completed successfully",
-#                 "session_id": session_id,
-#                 "status": "completed",
-#                 "user_prompt": final_session.user_prompt,
-#                 "category": final_session.category,
-#                 "ai_processing": ai_results,
-#                 "output_video_path": veo3_processing_result["output_path"],
-#                 "video_url": veo3_processing_result["video_url"],
-#                 "task_id": veo3_processing_result["task_id"],
-#                 "file_size": veo3_processing_result["file_size"],
-#                 "elapsed_seconds": veo3_processing_result.get("elapsed_seconds", 0),
-#                 "veo3_inputs": veo3_inputs
-#             }
+            from app.services.veo3_service import veo3_service
+            veo3_processing_result = await veo3_service.generate_video_complete(
+                prompt=veo3_inputs["video_prompt"],
+                output_video_id=session_id,
+                images=veo3_inputs["images"]
+            )
+
+            print('veo3_processing_result', veo3_processing_result)
+
+            if not veo3_processing_result["success"]:
+                # Update session status to failed if video generation fails
+                failed_update = schemas.VideoSessionUpdate(status=models.VideoSessionStatus.FAILED)
+                crud.update_video_session(db, session_id, failed_update)
+
+                return {
+                    "message": "Video generation failed",
+                    "session_id": session_id,
+                    "status": "failed",
+                    "error": veo3_processing_result["error"],
+                    "ai_processing": ai_results,
+                    "veo3_inputs": veo3_inputs
+                }
+
+            # Update session status to completed and save output paths
+            completed_update = schemas.VideoSessionUpdate(
+                status=models.VideoSessionStatus.COMPLETED,
+                output_video_path=veo3_processing_result["output_path"],
+                video_url=veo3_processing_result["video_url"]
+            )
+            final_session = crud.update_video_session(db, session_id, completed_update)
+
+            return {
+                "message": "Video processing completed successfully",
+                "session_id": session_id,
+                "status": "completed",
+                "user_prompt": final_session.user_prompt,
+                "category": final_session.category,
+                "ai_processing": ai_results,
+                "output_video_path": veo3_processing_result["output_path"],
+                "video_url": veo3_processing_result["video_url"],
+                "task_id": veo3_processing_result["task_id"],
+                "file_size": veo3_processing_result["file_size"],
+                "elapsed_seconds": veo3_processing_result.get("elapsed_seconds", 0),
+                "veo3_inputs": veo3_inputs
+            }
 
 
             
-            return {
-            "message": "Video processing completed successfully",
-                "session_id": 1,
-                "status": "completed",
-                "user_prompt": "help me to generate the mom's day thank you e-card",
-                "category": "congratulation_video",
-                "ai_processing": {
-                    "session_id": 1,
-                    "status": "completed",
-                    "images": [
-                        "https://storage.googleapis.com/uqcshackathon2025/user_sereneye130%40gmail.com/20250817_005527_88805534_p0_31e2482c.png?Expires=1755395747&GoogleAccessId=hackathon-2025%40hackathon2025-469113.iam.gserviceaccount.com&Signature=MhoQ48qphY9w8uAoMuRPJ4gvrUS5WZHGvvbhdcy%2Fq2rK4Ox3F6tqhD2qcs7s2PFCyIdSoey%2FlROBcBWQ0BHARjUnnadNZ9vk7fruzYM55ECrkPsbhUORdcXHlUE26MpKfSK75hykSygLjkPxoQn8rLKXGZOZwrUer8ouoQ1PFqbreDdTAMa3f15gw1SLU73ynrlUkd2rnaVEEJ99Jkbd%2FSEqambuezDiUngWZFhIp6l25xu3t9IsAuGnQ2YxUeAqR3244M6dfHrqt%2FuejaOeos0YzZrL6ww8bNHjRVYAg2hv5ULxBdCcFwq1DeXk6T7WvFrNn07q1XP9GwN3qum76Q%3D%3D"
-                    ],
-                    "session_updated": {
-                        "status": "success",
-                        "session_status": "completed",
-                        "processed_files": 0,
-                        "updated_at": "2025-08-17T00:55:51"
-                    },
-                    "prompts": {
-                        "video_prompt": "Close-up, low angle. Display Mother figure, Thank you message and E-card design in a calm home environment. Camera slowly pans to match mood. Artistic lighting and color grading.",
-                        "audio_prompt": "A heartfelt Mother's Day thank you, lovingly presented."
-                    },
-                    "user_prompt": "help me to generate the mom's day thank you e-card",
-                    "category": "congratulation_video"
-                },
-                "output_video_path": "/Users/sereneye/Downloads/Studying/Others/UQCS_Hackathon_2025/backend/temp/generated_video/1.mp4",
-                "video_url": "https://filesystem.site/cdn/20250817/FF4K4VajpYmwCvHfPXtwilOmc83T0N.mp4",
-                "task_id": "veo3-fast:1755392154-BqUkSteGSa",
-                "file_size": 1165191,
-                "elapsed_seconds": 74.63100000000009,
-                "veo3_inputs": {
-                    "success": True,
-                    "video_prompt": "Close-up, low angle. Display Mother figure, Thank you message and E-card design in a calm home environment. Camera slowly pans to match mood. Artistic lighting and color grading.",
-                    "images": [
-                        "https://storage.googleapis.com/uqcshackathon2025/user_sereneye130%40gmail.com/20250817_005527_88805534_p0_31e2482c.png?Expires=1755395747&GoogleAccessId=hackathon-2025%40hackathon2025-469113.iam.gserviceaccount.com&Signature=MhoQ48qphY9w8uAoMuRPJ4gvrUS5WZHGvvbhdcy%2Fq2rK4Ox3F6tqhD2qcs7s2PFCyIdSoey%2FlROBcBWQ0BHARjUnnadNZ9vk7fruzYM55ECrkPsbhUORdcXHlUE26MpKfSK75hykSygLjkPxoQn8rLKXGZOZwrUer8ouoQ1PFqbreDdTAMa3f15gw1SLU73ynrlUkd2rnaVEEJ99Jkbd%2FSEqambuezDiUngWZFhIp6l25xu3t9IsAuGnQ2YxUeAqR3244M6dfHrqt%2FuejaOeos0YzZrL6ww8bNHjRVYAg2hv5ULxBdCcFwq1DeXk6T7WvFrNn07q1XP9GwN3qum76Q%3D%3D"
-                    ],
-                    "audio_prompt": "A heartfelt Mother's Day thank you, lovingly presented."
-                }
-            }
+            # return {
+            # "message": "Video processing completed successfully",
+            #     "session_id": 1,
+            #     "status": "completed",
+            #     "user_prompt": "help me to generate the mom's day thank you e-card",
+            #     "category": "congratulation_video",
+            #     "ai_processing": {
+            #         "session_id": 1,
+            #         "status": "completed",
+            #         "images": [
+            #             "https://storage.googleapis.com/uqcshackathon2025/user_sereneye130%40gmail.com/20250817_005527_88805534_p0_31e2482c.png?Expires=1755395747&GoogleAccessId=hackathon-2025%40hackathon2025-469113.iam.gserviceaccount.com&Signature=MhoQ48qphY9w8uAoMuRPJ4gvrUS5WZHGvvbhdcy%2Fq2rK4Ox3F6tqhD2qcs7s2PFCyIdSoey%2FlROBcBWQ0BHARjUnnadNZ9vk7fruzYM55ECrkPsbhUORdcXHlUE26MpKfSK75hykSygLjkPxoQn8rLKXGZOZwrUer8ouoQ1PFqbreDdTAMa3f15gw1SLU73ynrlUkd2rnaVEEJ99Jkbd%2FSEqambuezDiUngWZFhIp6l25xu3t9IsAuGnQ2YxUeAqR3244M6dfHrqt%2FuejaOeos0YzZrL6ww8bNHjRVYAg2hv5ULxBdCcFwq1DeXk6T7WvFrNn07q1XP9GwN3qum76Q%3D%3D"
+            #         ],
+            #         "session_updated": {
+            #             "status": "success",
+            #             "session_status": "completed",
+            #             "processed_files": 0,
+            #             "updated_at": "2025-08-17T00:55:51"
+            #         },
+            #         "prompts": {
+            #             "video_prompt": "Close-up, low angle. Display Mother figure, Thank you message and E-card design in a calm home environment. Camera slowly pans to match mood. Artistic lighting and color grading.",
+            #             "audio_prompt": "A heartfelt Mother's Day thank you, lovingly presented."
+            #         },
+            #         "user_prompt": "help me to generate the mom's day thank you e-card",
+            #         "category": "congratulation_video"
+            #     },
+            #     "output_video_path": "/Users/sereneye/Downloads/Studying/Others/UQCS_Hackathon_2025/backend/temp/generated_video/1.mp4",
+            #     "video_url": "https://filesystem.site/cdn/20250817/FF4K4VajpYmwCvHfPXtwilOmc83T0N.mp4",
+            #     "task_id": "veo3-fast:1755392154-BqUkSteGSa",
+            #     "file_size": 1165191,
+            #     "elapsed_seconds": 74.63100000000009,
+            #     "veo3_inputs": {
+            #         "success": True,
+            #         "video_prompt": "Close-up, low angle. Display Mother figure, Thank you message and E-card design in a calm home environment. Camera slowly pans to match mood. Artistic lighting and color grading.",
+            #         "images": [
+            #             "https://storage.googleapis.com/uqcshackathon2025/user_sereneye130%40gmail.com/20250817_005527_88805534_p0_31e2482c.png?Expires=1755395747&GoogleAccessId=hackathon-2025%40hackathon2025-469113.iam.gserviceaccount.com&Signature=MhoQ48qphY9w8uAoMuRPJ4gvrUS5WZHGvvbhdcy%2Fq2rK4Ox3F6tqhD2qcs7s2PFCyIdSoey%2FlROBcBWQ0BHARjUnnadNZ9vk7fruzYM55ECrkPsbhUORdcXHlUE26MpKfSK75hykSygLjkPxoQn8rLKXGZOZwrUer8ouoQ1PFqbreDdTAMa3f15gw1SLU73ynrlUkd2rnaVEEJ99Jkbd%2FSEqambuezDiUngWZFhIp6l25xu3t9IsAuGnQ2YxUeAqR3244M6dfHrqt%2FuejaOeos0YzZrL6ww8bNHjRVYAg2hv5ULxBdCcFwq1DeXk6T7WvFrNn07q1XP9GwN3qum76Q%3D%3D"
+            #         ],
+            #         "audio_prompt": "A heartfelt Mother's Day thank you, lovingly presented."
+            #     }
+            # }
 
         except Exception as ai_error:
             # If AI processing fails, update session status to failed
