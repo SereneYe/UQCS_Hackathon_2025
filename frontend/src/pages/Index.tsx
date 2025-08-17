@@ -1,13 +1,16 @@
 
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Terminal from '@/components/Terminal';
 import EmailForm from '@/components/EmailForm';
 import FeatureCard from '@/components/FeatureCard';
-import { MessageSquare, Code, Play } from 'lucide-react';
+import { MessageSquare, Code, Play, User } from 'lucide-react';
+import { getCurrentUserIdFromStorage } from '@/services/videoSessionService';
 
 const Index = () => {
   const [loaded, setLoaded] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Add small delay before starting animations
@@ -18,9 +21,38 @@ const Index = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  const handleUserAvatarClick = () => {
+    const userId = getCurrentUserIdFromStorage();
+    if (userId) {
+      navigate('/my-videos');
+    } else {
+      // If no user ID, could navigate to create account or show a toast
+      // For now, navigate to create-video as suggested in issue
+      navigate('/create-video');
+    }
+  };
+
+  const userId = getCurrentUserIdFromStorage();
+
   return (
     <div className="min-h-screen flex flex-col overflow-hidden bg-arcade-dark">
       <div className="flex-1 container mx-auto px-4 py-8 max-w-6xl">
+        {/* User Avatar Button */}
+        <div className="absolute top-6 right-6">
+          <button
+            onClick={handleUserAvatarClick}
+            className={`p-3 rounded-full transition-all duration-300 ${
+              userId 
+                ? ' hover:bg-arcade-purple/80 hover:scale-120 text-white'
+                : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+            } backdrop-blur-sm border border-gray-800 shadow-lg`}
+            disabled={!userId}
+            title={userId ? 'My Videos' : 'Please create an account first'}
+          >
+            <User size={25} />
+          </button>
+        </div>
+
         <Header />
         
         <div className={`mt-16 mb-12 text-center transition-opacity duration-700 ${loaded ? 'opacity-100' : 'opacity-0'}`}>
