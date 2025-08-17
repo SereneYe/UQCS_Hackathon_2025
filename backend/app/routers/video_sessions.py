@@ -209,8 +209,6 @@ async def start_session_processing(
                 images=veo3_inputs["images"]
             )
             
-            print('veo3_processing_result', veo3_processing_result)
-            
             if not veo3_processing_result["success"]:
                 # Update session status to failed if video generation fails
                 failed_update = schemas.VideoSessionUpdate(status=models.VideoSessionStatus.FAILED)
