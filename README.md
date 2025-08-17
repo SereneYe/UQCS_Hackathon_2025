@@ -6,6 +6,21 @@ This repository contains:
 
 Follow this guide to run both services locally.
 
+## AI-Powered Development
+
+This project was developed using cutting-edge AI tools for brainstorming, design, and implementation:
+
+### AI Models Used
+- **Claude Sonnet 4** - Advanced reasoning and code generation
+- **ChatGPT-4** - Problem solving and architectural decisions
+
+### AI Development Tools
+- **Claude Code** - Interactive CLI for real-time code assistance and debugging
+- **ChatGPT** - Ideation, brainstorming, and technical consultation  
+- **Lovable** - AI-powered frontend development and UI/UX design
+
+These AI tools significantly accelerated development by providing intelligent code suggestions, architectural guidance, and rapid prototyping capabilities.
+
 ---
 
 ## Prerequisites
