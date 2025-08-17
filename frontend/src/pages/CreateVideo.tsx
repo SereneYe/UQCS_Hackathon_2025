@@ -17,6 +17,35 @@ enum VideoCategory {
   GENERAL_VIDEO = "general_video"
 }
 
+type MaybeNumberString = number | string;
+
+interface StartProcessingResponse {
+  message?: string;
+  session_id?: MaybeNumberString;
+  status?: string;
+  user_prompt?: string;
+  category?: string;
+  ai_processing?: {
+    session_id?: MaybeNumberString;
+    status?: string;
+    images?: string[];
+    prompts?: {
+      video_prompt?: string;
+      audio_prompt?: string;
+    };
+    user_prompt?: string;
+    category?: string;
+    pdfs?: Array<{ url: string; title?: string }> | string[];
+  };
+  output_video_path?: string;
+  video_url?: string;
+  task_id?: string;
+  file_size?: number;
+  elapsed_seconds?: number;
+  veo3_inputs?: Record<string, unknown>;
+  [k: string]: unknown;
+}
+
 const categoryOptions: Array<{ id: VideoCategory; label: string; icon?: React.ReactNode }> = [
   { 
     id: VideoCategory.CONGRATULATION_VIDEO, 
@@ -134,27 +163,37 @@ const CreateVideo = () => {
       formData.append('user_prompt', videoIdea.trim());
       formData.append('category', selectedCategory);
 
-      // Use apiClient.request directly to send FormData
-      await apiClient.request(`/video-sessions/${encodeURIComponent(sessionId)}/start-processing`, {
+      // Send request and wait for server response
+      const resp = await apiClient.request(`/video-sessions/${encodeURIComponent(sessionId)}/start-processing`, {
         method: 'POST',
         body: formData,
-        headers: {
-        },
-      });
+        headers: {},
+      }) as StartProcessingResponse;
 
-      toast({
-        title: 'Success',
-        description: 'Video session processing has started.',
-        duration: 3000, // Auto-dismiss after 3 seconds
-      });
+      const status = resp?.status;
+      const sid = (resp?.session_id ?? sessionId) as MaybeNumberString;
+      
+      if (status === 'completed' && sid) {
+        toast({
+          title: 'Success',
+          description: 'Video processing completed successfully.',
+          duration: 3000,
+        });
 
-      // Optional: navigate to workspace or stay on current page
-      // navigate('/workspace');
-
+        // Navigate to workspace with session_id and pass complete response via state
+        navigate(`/workspace/${encodeURIComponent(String(sid))}`, {
+          state: { response: resp }
+        });
+      } else {
+        const reason = resp?.message || 'Processing not completed yet.';
+        toast({
+          title: 'Start Failed',
+          description: String(reason),
+          variant: 'destructive',
+        });
+      }
     } catch (err: unknown) {
-      const message =
-        (err instanceof Error ? err.message : null) ||
-        'Request failed, please try again later.';
+      const message = (err instanceof Error ? err.message : null) || 'Request failed, please try again later.';
       toast({
         title: 'Start Failed',
         description: message,
