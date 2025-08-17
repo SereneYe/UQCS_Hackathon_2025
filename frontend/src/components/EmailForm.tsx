@@ -17,7 +17,7 @@ const EmailForm = () => {
     
     if (!email.trim()) {
       toast({
-        title: "Please enter your email",
+        title: "Please enter your email 📧",
         variant: "destructive",
       });
       return;
@@ -30,7 +30,7 @@ const EmailForm = () => {
       
       // Success case
       toast({
-        title: "Welcome! Account created successfully.",
+        title: "Welcome! Account created successfully. 😃",
         description: "Redirecting to create video...",
       });
       setEmail('');
@@ -40,7 +40,7 @@ const EmailForm = () => {
       if (error?.response?.status === 400 && error?.response?.data?.detail === "Email already registered") {
         // Email already exists - still allow navigation
         toast({
-          title: "Welcome back! Redirecting to create video.",
+          title: "Welcome back! Redirecting to create video. 😎",
           description: "Your email is already registered.",
         });
         setEmail('');
@@ -48,7 +48,7 @@ const EmailForm = () => {
       } else {
         // Other errors - show error and don't navigate
         toast({
-          title: "Something went wrong. Please try again.",
+          title: "Something went wrong. Please try again. 🥹",
           variant: "destructive",
         });
       }

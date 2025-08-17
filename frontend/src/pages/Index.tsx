@@ -5,7 +5,7 @@ import Header from '@/components/Header';
 import Terminal from '@/components/Terminal';
 import EmailForm from '@/components/EmailForm';
 import FeatureCard from '@/components/FeatureCard';
-import { MessageSquare, Code, Play, User } from 'lucide-react';
+import { MessageSquare, Code, Play, User, Video, FileText, Sparkles } from 'lucide-react';
 import { getCurrentUserIdFromStorage } from '@/services/videoSessionService';
 
 const Index = () => {
@@ -60,7 +60,7 @@ const Index = () => {
             <span className="gradient-text">Create Videos With Just a Prompt</span>
           </h2>
           <p className="text-lg text-gray-300 max-w-2xl mx-auto">
-            Type a prompt, get a vivid video instantly. No coding required.
+            ✨ Type a prompt, get your stunning video instantly ✨
           </p>
         </div>
         
@@ -69,31 +69,31 @@ const Index = () => {
         <EmailForm />
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mt-16 mb-16">
-          <FeatureCard 
-            icon={<MessageSquare size={28} />}
-            title="Chat to Create"
-            description="Simply describe your video idea in natural language and watch it come to life"
-            delay="delay-100"
+          <FeatureCard
+              icon={<Sparkles size={28} />}
+              title="AI-Powered Generation"
+              description="Advanced AI analyzes your content and generates professional video"
+              delay="delay-100"
           />
           
-          <FeatureCard 
-            icon={<Code size={28} />}
-            title="No Coding Required"
-            description="Create complex videos without writing a single line of code"
-            delay="delay-300"
+          <FeatureCard
+              icon={<FileText size={28} />}
+              title="Multi-Format Support"
+              description="Upload multimodal documents to enhance your video creation"
+              delay="delay-300"
           />
           
-          <FeatureCard 
-            icon={<Play size={28} />}
-            title="Instantly Playable"
-            description="Get a working video in seconds that you can play and share immediately"
-            delay="delay-500"
+          <FeatureCard
+              icon={<Video size={28} />}
+              title="Professional Videos"
+              description="Create cinematic videos for various scenarios"
+              delay="delay-500"
           />
         </div>
       </div>
       
       <footer className="py-6 border-t border-gray-800 text-center text-sm text-gray-500">
-        <p>© 2025 .</p>
+        <p>© UQCS Hackathon 2025 - Team Names Are Cringe</p>
       </footer>
     </div>
   );

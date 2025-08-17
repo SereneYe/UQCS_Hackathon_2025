@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from './api';
-import { createVideoSessionForCurrentUser } from './videoSessionService';
 
 export interface User {
   id: number;
@@ -50,9 +49,7 @@ export const useCreateUser = () => {
   return useMutation({
     mutationFn: (userData: UserCreate) =>
       apiClient.post<User>('/users/', userData),
-    // Note: onSuccess can be async. This ensures proper sequence in mutate/mutateAsync.
-    onSuccess: async (data) => {
-      // save to localStorage (preserve original logic)
+    onSuccess: (data) => {
       if (data?.id && data?.email) {
         try {
           localStorage.setItem('currentUserId', String(data.id));
@@ -60,15 +57,6 @@ export const useCreateUser = () => {
         } catch {
           // ignore the error
         }
-      }
-
-      // New: After user creation succeeds, immediately create video session and write sessionId to localStorage
-      // Don't require session_name/description here; can be passed from calling layer if needed.
-      try {
-        await createVideoSessionForCurrentUser();
-      } catch (e) {
-        // Don't throw error to avoid blocking user flow; can show toast warning in UI
-        console.warn("Create video session failed:", e);
       }
       
       queryClient.invalidateQueries({ queryKey: userKeys.all });
