@@ -1,8 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Share2, Download, Lock, Sparkles, ArrowLeft, ChevronDown, Loader2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '@/services/api';
+import { createVideoSessionForCurrentUser, getCurrentUserIdFromStorage } from '@/services/videoSessionService';
 import ImageUploader from '../components/uploader/ImageUploader';
 import PDFUploader from '../components/uploader/PDFUploader';
 import type { PreparedFile } from '../types/upload';
@@ -128,6 +129,7 @@ const GlobalLoader = ({ isVisible }: { isVisible: boolean }) => {
 const CreateVideo = () => {
   const [videoIdea, setVideoIdea] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<VideoCategory>(VideoCategory.CONGRATULATION_VIDEO);
   const [uploadedImages, setUploadedImages] = useState<PreparedFile[]>([]);
   const [uploadedPDFs, setUploadedPDFs] = useState<PreparedFile[]>([]);
@@ -137,6 +139,45 @@ const CreateVideo = () => {
   const [editingPDFs, setEditingPDFs] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  
+  useEffect(() => {
+    const initializeSession = async () => {
+      try {
+        setIsInitializing(true);
+        
+        const userId = getCurrentUserIdFromStorage();
+        if (!userId) {
+          toast({
+            title: 'Cannot find the user',
+            description: 'Please create a new account first. 😃',
+            variant: 'destructive',
+          });
+          navigate('/');
+          return;
+        }
+        
+        await createVideoSessionForCurrentUser();
+        
+        toast({
+          title: 'Created a new video session ready',
+          description: 'Created a new video session ready. You can start creating your video now. 😊',
+          duration: 2000,
+        });
+        
+      } catch (error) {
+        console.error('Failed to create video session:', error);
+        toast({
+          title: 'Failed to create video session',
+          description: 'Failed to create video session, please refresh 🥹',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsInitializing(false);
+      }
+    };
+
+    initializeSession();
+  }, []);
 
   // Progressive disclosure logic - Apple style with skip functionality
   const hasVideoIdea = videoIdea.trim().length > 0;
@@ -153,8 +194,8 @@ const CreateVideo = () => {
   const showPDFUploader = canShowPDFUploader && editingPDFs;
 
   const canCreate = useMemo(() => {
-    return !!videoIdea.trim() && !!selectedCategory && imageStepCompleted && pdfStepCompleted && !isCreating;
-  }, [videoIdea, selectedCategory, imageStepCompleted, pdfStepCompleted, isCreating]);
+    return !!videoIdea.trim() && !!selectedCategory && imageStepCompleted && pdfStepCompleted && !isCreating && !isInitializing;
+  }, [videoIdea, selectedCategory, imageStepCompleted, pdfStepCompleted, isCreating, isInitializing]);
 
   // Handler functions for skip actions
   const handleSkipImages = () => {
@@ -164,7 +205,7 @@ const CreateVideo = () => {
       setEditingPDFs(true);
     }
     toast({
-      title: "Images Skipped",
+      title: "Images Skipped 🌠",
       description: "Proceeding without images. You can add them later if needed.",
       duration: 2000,
     });
@@ -174,7 +215,7 @@ const CreateVideo = () => {
     setPdfsSkipped(true);
     setEditingPDFs(false);
     toast({
-      title: "PDFs Skipped", 
+      title: "PDFs Skipped 📄",
       description: "Proceeding without PDF documents. You can add them later if needed.",
       duration: 2000,
     });
@@ -200,7 +241,7 @@ const CreateVideo = () => {
     const sessionId = window.localStorage.getItem(SESSION_ID_KEY);
     if (!sessionId) {
       toast({
-        title: 'Session ID Missing',
+        title: 'Session ID Missing 🙃',
         description: 'No session ID found. Please create or restore a session first.',
         variant: 'destructive',
       });
@@ -226,7 +267,7 @@ const CreateVideo = () => {
       
       if (status === 'completed' && sid) {
         toast({
-          title: 'Success',
+          title: 'Success 😆',
           description: 'Video processing completed successfully.',
           duration: 3000,
         });
@@ -238,7 +279,7 @@ const CreateVideo = () => {
       } else {
         const reason = resp?.message || 'Processing not completed yet.';
         toast({
-          title: 'Start Failed',
+          title: 'Start Failed 😨',
           description: String(reason),
           variant: 'destructive',
         });
@@ -246,7 +287,7 @@ const CreateVideo = () => {
     } catch (err: unknown) {
       const message = (err instanceof Error ? err.message : null) || 'Request failed, please try again later.';
       toast({
-        title: 'Start Failed',
+        title: 'Start Failed 😨',
         description: message,
         variant: 'destructive',
       });
@@ -258,7 +299,7 @@ const CreateVideo = () => {
   const handleCreate = () => {
     if (!videoIdea.trim()) {
       toast({
-        title: "Please enter your video idea",
+        title: "Please enter your video idea 💡",
         variant: "destructive",
       });
       return;
@@ -270,6 +311,19 @@ const CreateVideo = () => {
   const goBack = () => {
     navigate('/');
   };
+
+  // Show loading screen while initializing
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-arcade-dark">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-gray-800 border-t-arcade-purple rounded-full animate-spin mb-4"></div>
+          <h2 className="text-xl font-bold text-white mb-2">Prepare for the create video...</h2>
+          <p className="text-gray-400">Initializing session...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
