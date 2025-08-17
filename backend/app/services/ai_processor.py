@@ -71,14 +71,13 @@ class AIProcessor:
             # Step 2: Process image files
             logger.info("Step 2: Processing image files")
             image_results = await self._process_session_images(session_id)
-            print('image_results', image_results)
+            images = image_results["images"]
             
             # Step 3: Generate AI prompts
             logger.info("Step 3: Generating AI prompts")
             ai_results = await self._generate_ai_prompts(
                 final_user_prompt, 
                 pdf_results["combined_content"], 
-                image_results["images"],
                 final_category
             )
             
@@ -97,16 +96,12 @@ class AIProcessor:
             processing_results = {
                 "session_id": session_id,
                 "status": "completed",
-                "pdf_processing": pdf_results,
-                "image_processing": image_results,
-                "ai_generation": ai_results,
+                "images": images,
                 "session_updated": session_update,
-                "prompts_generated": {
+                "prompts": {
                     "video_prompt": ai_results.get("data", {}).get("video_prompt", ""),
                     "audio_prompt": ai_results.get("data", {}).get("audio_prompt", ""),
-                    "enhanced_user_prompt": ai_results.get("data", {}).get("enhanced_user_prompt", final_user_prompt)
                 },
-                "processing_time": datetime.utcnow().isoformat(),
                 "user_prompt": final_user_prompt,
                 "category": final_category.value if final_category else None
             }
@@ -209,19 +204,17 @@ class AIProcessor:
         self, 
         user_prompt: str, 
         pdf_content: str, 
-        images: list,
         category: Optional[models.VideoCategory]
     ) -> Dict[str, Any]:
         """Generate AI prompts using OpenAI service"""
         try:
             has_pdf = pdf_content and pdf_content.strip() != ""
-            has_images = images and len(images) > 0
 
-            if not has_pdf and not has_images:
+            if not has_pdf:
                 # No PDF or image content, use standard prompt analysis
                 logger.info("No PDF or image content available, using standard prompt analysis")
                 return await self.openai_service.analyze_and_generate_prompts(user_prompt)
-            elif has_pdf:
+            else:
                 # Use PDF-enhanced prompt generation (images are passed through separately)
                 logger.info(f"Using PDF-enhanced prompt generation")
                 res = await self.openai_service.analyze_pdf_content_and_generate_prompts(
@@ -229,12 +222,7 @@ class AIProcessor:
                     pdf_content, 
                     category
                 )
-                return res
-            else:
-                # Only images, no PDF - use standard prompt analysis
-                logger.info("Only images available, using standard prompt analysis")
-                return await self.openai_service.analyze_and_generate_prompts(user_prompt)
-                
+                return res           
         except Exception as e:
             logger.error(f"AI prompt generation failed: {e}")
             return {

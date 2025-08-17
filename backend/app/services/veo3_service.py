@@ -128,7 +128,7 @@ class VEO3Service:
         prompt: str,
         model: str = "veo3-fast",
         enhance_prompt: bool = True,
-        image_url: Optional[str] = None
+        images: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Create a video generation task
@@ -153,8 +153,8 @@ class VEO3Service:
             }
             
             # Add image URL if provided
-            if image_url:
-                payload["image_url"] = image_url
+            if images:
+                payload["images"] = images
             
             async with aiohttp.ClientSession() as session:
                 response_data = await self._make_request(
@@ -341,7 +341,7 @@ class VEO3Service:
         output_video_id: int,
         model: str = "veo3-fast",
         enhance_prompt: bool = True,
-        image_url: Optional[str] = None,
+        images: Optional[str] = None,
         format: str = "mp4"
     ) -> Dict[str, Any]:
         """
@@ -352,7 +352,7 @@ class VEO3Service:
             output_video_id: ID for the output video file
             model: VEO3 model to use
             enhance_prompt: Whether to enhance the prompt
-            image_url: Optional image URL for image-to-video generation
+            images: Optional image URL for image-to-video generation
             format: Output video format
             
         Returns:
@@ -365,7 +365,7 @@ class VEO3Service:
                 prompt=prompt,
                 model=model,
                 enhance_prompt=enhance_prompt,
-                image_url=image_url
+                images=images
             )
             
             if not create_result["success"]:

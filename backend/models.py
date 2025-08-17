@@ -86,6 +86,7 @@ class VideoSession(Base):
     total_files = Column(Integer, default=0)  # Track number of files in session
     processed_files = Column(Integer, default=0)  # Track processed files
     output_video_path = Column(String, nullable=True)  # Path to final video
+    video_url = Column(String, nullable=True)  # URL to generated video
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
