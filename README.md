@@ -49,6 +49,26 @@ These AI tools significantly accelerated development by providing intelligent co
 - **Node.js & npm** - JavaScript runtime and package management
 - **Git** - Version control system
 
+## Running Image
+
+<img width="2994" height="2510" alt="homepage" src="https://github.com/user-attachments/assets/ad939745-07ac-4dd0-ba86-b7eba1ea471e" />
+
+<img width="2994" height="2606" alt="upload" src="https://github.com/user-attachments/assets/6610afb8-9686-40be-a688-33a4a5bd2131" />
+
+<img width="2994" height="2428" alt="upload2" src="https://github.com/user-attachments/assets/a67a2ad4-4cd4-48be-ba54-ee87e8629c99" />
+
+<img width="2994" height="3514" alt="video_collection" src="https://github.com/user-attachments/assets/cb90aed2-6298-4fed-b943-fdf1a68d086f" />
+
+## Sample Generation Videos
+
+https://github.com/user-attachments/assets/39e8cb4b-948d-446d-9099-d123e9c093a5
+
+https://github.com/user-attachments/assets/df342521-01f1-454a-9c8e-c11fc024dab7
+
+https://github.com/user-attachments/assets/7abf5bf8-7bc7-40e3-b8c0-e3ceae049757
+
+https://github.com/user-attachments/assets/fc982a8b-b7f5-4292-9cec-337f5f7b0db8
+
 ---
 
 ## Prerequisites
