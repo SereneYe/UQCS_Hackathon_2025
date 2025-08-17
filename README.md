@@ -21,6 +21,34 @@ This project was developed using cutting-edge AI tools for brainstorming, design
 
 These AI tools significantly accelerated development by providing intelligent code suggestions, architectural guidance, and rapid prototyping capabilities.
 
+## Tech Stack
+
+### Frontend
+- **React** - Modern UI library for building interactive user interfaces
+- **TypeScript** - Type-safe JavaScript for better development experience
+- **Vite** - Fast build tool and development server
+- **TailwindCSS** - Utility-first CSS framework for rapid styling
+- **shadcn/ui** - High-quality accessible UI components
+
+### Backend
+- **FastAPI** - High-performance Python web framework with automatic API documentation
+- **SQLAlchemy** - Python SQL toolkit and Object-Relational Mapping (ORM)
+- **Uvicorn** - Lightning-fast ASGI server implementation
+- **Pydantic** - Data validation using Python type annotations
+
+### Cloud Services & APIs
+- **Google Cloud Storage (GCS)** - Scalable object storage for file uploads and management
+- **Google Cloud Text-to-Speech** - AI-powered speech synthesis
+- **VEO3** - Advanced AI video generation service for creating high-quality videos from text prompts
+
+### Database
+- **SQLite** - Lightweight, serverless database for development
+
+### Development Tools
+- **Python 3.11+** - Modern Python runtime
+- **Node.js & npm** - JavaScript runtime and package management
+- **Git** - Version control system
+
 ---
 
 ## Prerequisites
