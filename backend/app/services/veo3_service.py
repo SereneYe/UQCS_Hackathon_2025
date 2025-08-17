@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 # Add parent directories to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from config import VEO3_MODEL_FRAMES, get_video_file_path, ensure_temp_directories
+from config import VEO3_MODEL, VEO3_MODEL_FRAMES, get_video_file_path, ensure_temp_directories
 
 # Load environment variables
 load_dotenv()
