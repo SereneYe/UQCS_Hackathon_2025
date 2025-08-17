@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 # Add parent directories to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from config import get_video_file_path, ensure_temp_directories
+from config import VEO3_MODEL_FRAMES, get_video_file_path, ensure_temp_directories
 
 # Load environment variables
 load_dotenv()
@@ -126,7 +126,7 @@ class VEO3Service:
     async def create_video_task(
         self,
         prompt: str,
-        model: str = "veo3-fast",
+        model: str = VEO3_MODEL,
         enhance_prompt: bool = True,
         images: Optional[str] = None
     ) -> Dict[str, Any]:
@@ -155,8 +155,10 @@ class VEO3Service:
             # Add image URL if provided
             if images:
                 payload["images"] = images
-            
+                payload["model"] = VEO3_MODEL_FRAMES   
+                
             async with aiohttp.ClientSession() as session:
+                
                 response_data = await self._make_request(
                     session, 'POST', self.create_url, json=payload
                 )
@@ -339,7 +341,7 @@ class VEO3Service:
         self,
         prompt: str,
         output_video_id: int,
-        model: str = "veo3-fast",
+        model: str = VEO3_MODEL,
         enhance_prompt: bool = True,
         images: Optional[list] = None,
         format: str = "mp4"
