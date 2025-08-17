@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import CreateVideo from "./pages/CreateVideo.tsx";
 import VideoWorkspace from "./pages/VideoWorkspace.tsx";
+import MyVideos from "./pages/MyVideos.tsx";
 import NotFound from "./pages/NotFound";
 // Only import testing pages in development environment
 import Testing from "./pages/Testing";
@@ -21,6 +22,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/create-video" element={<CreateVideo />} />
+            <Route path="/my-videos" element={<MyVideos />} />
             <Route path="/workspace/:slug" element={<VideoWorkspace />} />
             {import.meta.env.DEV && (
               <Route path="/testing" element={<Testing />} />
